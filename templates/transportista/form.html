@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{% if t %}Editar{% else %}Nuevo{% endif %} Transportista{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'transportista/style.css' %}">{% endblock %}
+{% block content %}
+<div class="transportista-bg rounded p-3 p-md-4 mb-3">
+  <div class="card">
+    <div class="card-header">{% if t %}Editar{% else %}Nuevo{% endif %} Transportista</div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label>Nombre</label>
+            <input type="text" class="form-control" name="nombre" value="{{ t.nombre|default:'' }}" required>
+          </div>
+          <div class="form-group col-md-6">
+            <label>RUT</label>
+            <input type="text" class="form-control" name="rut" value="{{ t.rut|default:'' }}" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-4">
+            <label>Tipo</label>
+            <select class="form-control" name="tipo">
+              {% for k in tipos %}
+              <option value="{{ k }}" {% if t and t.tipo == k %}selected{% endif %}>{{ k }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group col-md-4">
+            <label>Email</label>
+            <input type="email" class="form-control" name="email" value="{{ t.email|default:'' }}">
+          </div>
+          <div class="form-group col-md-4">
+            <label>Teléfono</label>
+            <input type="text" class="form-control" name="telefono" value="{{ t.telefono|default:'' }}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Dirección</label>
+          <input type="text" class="form-control" name="direccion" value="{{ t.direccion|default:'' }}">
+        </div>
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" id="tp-activo" name="activo" {% if not t or t.activo %}checked{% endif %}>
+          <label class="form-check-label" for="tp-activo">Activo</label>
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a href="{% url 'transportista:index' %}" class="btn btn-light ml-2">Cancelar</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}{% endblock %}

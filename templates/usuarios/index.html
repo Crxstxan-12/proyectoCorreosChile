@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Usuarios{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'usuarios/style.css' %}">{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <div class="card mb-3">
+      <div class="card-header">Usuarios</div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Rol</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in perfiles %}
+              <tr>
+                <td>{{ p.user.username }}</td>
+                <td>{{ p.rol }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="2" class="text-center">Sin datos</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'usuarios/app.js' %}"></script>{% endblock %}

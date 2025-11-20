@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Reclamo {{ r.numero }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'reclamos/style.css' %}">{% endblock %}
+{% block content %}
+<div class="reclamos-bg rounded p-3 p-md-4 mb-3">
+  <div class="card mb-3">
+    <div class="card-header">Detalle Reclamo</div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <dl class="row">
+            <dt class="col-sm-4">Número</dt><dd class="col-sm-8">{{ r.numero }}</dd>
+            <dt class="col-sm-4">Tipo</dt><dd class="col-sm-8 text-capitalize">{{ r.tipo }}</dd>
+            <dt class="col-sm-4">Estado</dt><dd class="col-sm-8 text-capitalize">{{ r.estado }}</dd>
+            <dt class="col-sm-4">Envío</dt><dd class="col-sm-8">{{ r.envio.codigo|default:"-" }}</dd>
+            <dt class="col-sm-4">Creado</dt><dd class="col-sm-8">{{ r.creado_en }}</dd>
+          </dl>
+        </div>
+        <div class="col-md-6">
+          <dl class="row">
+            <dt class="col-sm-4">Descripción</dt><dd class="col-sm-8">{{ r.descripcion }}</dd>
+            <dt class="col-sm-4">Respuesta</dt><dd class="col-sm-8">{{ r.respuesta|default:"-" }}</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Actualizar Estado/Respuesta</div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-row">
+          <div class="form-group col-md-4">
+            <label>Estado</label>
+            <select class="form-control" name="estado">
+              {% for e in estados %}
+              <option value="{{ e }}" {% if r.estado == e %}selected{% endif %}>{{ e }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group col-md-8">
+            <label>Respuesta</label>
+            <textarea class="form-control" name="respuesta" rows="3">{{ r.respuesta|default:'' }}</textarea>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a href="{% url 'reclamos:index' %}" class="btn btn-light ml-2">Volver</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}{% endblock %}

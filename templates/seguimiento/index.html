@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Seguimiento{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'seguimiento/style.css' %}"><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-sA+e2WxxP5Y3fGgFEKs2nJ2fZQBkqkK4C2lZH8jxY1Y=" crossorigin="" />{% endblock %}
+
+{% block content %}
+<div class="seguimiento-bg rounded p-3 p-md-4 mb-3">
+  <div class="row metrics mb-3">
+    <div class="col-md-2 mb-3"><div class="card text-center"><div class="card-body"><div class="h6">Total</div><div class="h3">{{ total_eventos }}</div></div></div></div>
+    <div class="col-md-2 mb-3"><div class="card text-center"><div class="card-body"><div class="h6">Pendiente</div><div class="h3">{{ ev_pendiente }}</div></div></div></div>
+    <div class="col-md-2 mb-3"><div class="card text-center"><div class="card-body"><div class="h6">En tránsito</div><div class="h3">{{ ev_transito }}</div></div></div></div>
+    <div class="col-md-2 mb-3"><div class="card text-center"><div class="card-body"><div class="h6">En planta</div><div class="h3">{{ ev_planta }}</div></div></div></div>
+    <div class="col-md-2 mb-3"><div class="card text-center"><div class="card-body"><div class="h6">En reparto</div><div class="h3">{{ ev_reparto }}</div></div></div></div>
+    <div class="col-md-2 mb-3"><div class="card text-center"><div class="card-body"><div class="h6">Entregado</div><div class="h3">{{ ev_entregado }}</div></div></div></div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <div>Eventos de seguimiento</div>
+      <form class="form-inline toolbar" method="get">
+        <div class="input-group mr-2">
+          <div class="input-group-prepend"><span class="input-group-text">Buscar</span></div>
+          <input type="text" class="form-control" name="q" value="{{ q }}" placeholder="Código, ubicación u observación">
+        </div>
+        <select name="estado" class="form-control mr-2">
+          <option value="" {% if not estado %}selected{% endif %}>Todos</option>
+          <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+          <option value="en_transito" {% if estado == 'en_transito' %}selected{% endif %}>En tránsito</option>
+          <option value="en_planta" {% if estado == 'en_planta' %}selected{% endif %}>En planta</option>
+          <option value="en_reparto" {% if estado == 'en_reparto' %}selected{% endif %}>En reparto</option>
+          <option value="entregado" {% if estado == 'entregado' %}selected{% endif %}>Entregado</option>
+          <option value="incidencia" {% if estado == 'incidencia' %}selected{% endif %}>Incidencia</option>
+        </select>
+        <input type="date" class="form-control mr-2" name="desde" value="{{ desde }}">
+        <input type="date" class="form-control mr-2" name="hasta" value="{{ hasta }}">
+        <button type="submit" class="btn btn-primary mr-2">Filtrar</button>
+        <a href="{% url 'seguimiento:index' %}" class="btn btn-light">Limpiar</a>
+      </form>
+    </div>
+    <div class="card-body">
+      <div class="mb-3 p-3 border rounded">
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="nuevo_evento">
+          <div class="form-row">
+            <div class="col-md-3 mb-2">
+              <input type="text" class="form-control" name="envio_codigo" placeholder="Código de envío">
+            </div>
+            <div class="col-md-2 mb-2">
+              <select class="form-control" name="estado">
+                {% for k in estados_all %}
+                <option value="{{ k }}">{{ k }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3 mb-2"><input type="text" class="form-control" name="ubicacion" placeholder="Ubicación"></div>
+            <div class="col-md-2 mb-2"><input type="text" class="form-control" name="observacion" placeholder="Observación"></div>
+            <input type="hidden" id="event-lat" name="lat">
+            <input type="hidden" id="event-lng" name="lng">
+            <div class="col-md-2 mb-2 d-flex align-items-stretch">
+              <button type="button" id="btn-geo" class="btn btn-light mr-2">Ubicación actual</button>
+              <button type="submit" class="btn btn-primary">Registrar</button>
+            </div>
+          </div>
+        </form>
+        {% if saved_event %}<div class="alert alert-success mt-2">Evento registrado</div>{% endif %}
+        {% if saved_event_error %}<div class="alert alert-danger mt-2">{{ saved_event_error }}</div>{% endif %}
+      </div>
+      <div class="mb-3">
+        <div id="map-seguimiento" data-events='{{ map_points_json|safe }}' style="height:300px;border:1px solid #eee;border-radius:.5rem"></div>
+      </div>
+      <div class="d-flex justify-content-end mb-2">
+        <a class="btn btn-outline-secondary btn-sm mr-2" href="?q={{ q }}&estado={{ estado }}&desde={{ desde }}&hasta={{ hasta }}&export=csv">Exportar CSV</a>
+        <a class="btn btn-outline-secondary btn-sm" href="?q={{ q }}&estado={{ estado }}&desde={{ desde }}&hasta={{ hasta }}&export=xls">Exportar XLS</a>
+        <a class="btn btn-outline-secondary btn-sm ml-2" href="{% url 'seguimiento:reporte_pdf' %}?q={{ q }}&estado={{ estado }}&desde={{ desde }}&hasta={{ hasta }}">PDF</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Estado</th>
+              <th>Ubicación</th>
+              <th>Observación</th>
+              <th>Registrado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ev in eventos %}
+            <tr>
+              <td>{{ ev.envio.codigo }}</td>
+              <td>
+                {% if ev.estado == 'pendiente' %}<span class="badge badge-warning estado-pendiente">Pendiente</span>
+                {% elif ev.estado == 'en_transito' %}<span class="badge badge-info estado-transito">En tránsito</span>
+                {% elif ev.estado == 'en_planta' %}<span class="badge badge-secondary estado-planta">En planta</span>
+                {% elif ev.estado == 'en_reparto' %}<span class="badge badge-primary estado-reparto">En reparto</span>
+                {% elif ev.estado == 'entregado' %}<span class="badge badge-success estado-entregado">Entregado</span>
+                {% elif ev.estado == 'incidencia' %}<span class="badge badge-danger estado-incidencia">Incidencia</span>
+                {% else %}<span class="badge badge-light">{{ ev.estado }}</span>{% endif %}
+              </td>
+              <td>{{ ev.ubicacion }}</td>
+              <td>{{ ev.observacion|default:"-" }}</td>
+              <td>{{ ev.registrado_en }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center">Sin datos</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <nav aria-label="Paginación">
+        <ul class="pagination justify-content-end mb-0">
+          {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&estado={{ estado }}&desde={{ desde }}&hasta={{ hasta }}">Anterior</a></li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+          {% endif %}
+
+          <li class="page-item active"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+
+          {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&estado={{ estado }}&desde={{ desde }}&hasta={{ hasta }}">Siguiente</a></li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'seguimiento/app.js' %}"></script>{% endblock %}

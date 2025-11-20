@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Reporte Envíos{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+<style>
+@media print{ .cc-topbar, .cc-mainnav, .cc-redbar, .btn { display:none !important } }
+.brand{font-weight:700;color:#e30613}
+.meta{color:#666}
+</style>
+{% endblock %}
+{% block content %}
+<div class="container py-3">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div><span class="brand">CorreosChile</span> · Reporte de Envíos</div>
+    <div class="meta">Fecha: {{ fecha }}</div>
+  </div>
+  <div class="mb-2 meta">Filtros: Código/Texto="{{ q|default:'-' }}" · Estado="{{ estado|default:'-' }}" · Origen="{{ origen|default:'-' }}" · Destino="{{ destino|default:'-' }}"</div>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Estado</th>
+          <th>Origen</th>
+          <th>Destino</th>
+          <th>Destinatario</th>
+          <th>Bultos</th>
+          <th>Peso (kg)</th>
+          <th>Costo</th>
+          <th>Creado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in envios %}
+        <tr>
+          <td>{{ e.codigo }}</td>
+          <td>{{ e.estado }}</td>
+          <td>{{ e.origen }}</td>
+          <td>{{ e.destino }}</td>
+          <td>{{ e.destinatario_nombre }}</td>
+          <td>{{ e.bultos.count }}</td>
+          <td>{{ e.peso_kg|default:"-" }}</td>
+          <td>{{ e.costo|default:"-" }}</td>
+          <td>{{ e.creado_en }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="text-center">Sin datos</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <button class="btn btn-primary" onclick="window.print()">Imprimir</button>
+  <a class="btn btn-light" href="{% url 'envios:index' %}">Volver</a>
+  <div class="cc-redbar mt-3"></div>
+{% endblock %}

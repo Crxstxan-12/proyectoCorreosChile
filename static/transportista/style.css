@@ -1,0 +1,30 @@
+html, body{height:100%}
+:root{--tp-primary:#7b1fa2;--tp-primary-dark:#4a0072;--tp-accent:#ff6f61;--tp-bg-start:#f5eaff;--tp-bg-end:#fff3f7;--tp-success:#2e7d32;--tp-muted:#6b7280}
+body{background:linear-gradient(135deg,var(--tp-bg-start) 0%,var(--tp-bg-end) 100%)}
+table.table td, table.table th{vertical-align:middle}
+.estado-activo{color:var(--tp-success)}
+.estado-inactivo{color:var(--tp-muted)}
+.toolbar .input-group{width:320px}
+.metrics .card{border:1px solid #ececec}
+.table tbody tr:hover{background-color:#f8f9fa}
+.badge{font-size:90%}
+.transportista-bg{background:none}
+.transportista-bg .card{background:#fff;box-shadow:0 0.5rem 1rem rgba(0,0,0,.06);border:1px solid #eee}
+.card-header{background-color:var(--tp-primary);color:#fff;font-weight:600}
+.toolbar .form-control{border-color:#dee2e6}
+.toolbar .input-group-text{background-color:#fff;color:#6c757d}
+.btn-primary{background-color:var(--tp-primary);border-color:var(--tp-primary)}
+.btn-primary:hover{background-color:var(--tp-primary-dark);border-color:var(--tp-primary-dark)}
+.btn-primary:focus{box-shadow:0 0 0 .2rem rgba(123,31,162,.25)}
+.table thead th{background-color:#fafafa;font-weight:600}
+.table-striped tbody tr:nth-of-type(odd){background-color:#fcfcfd}
+.table tbody td{color:#4a4a4a}
+.badge-success.estado-activo{background-color:#eaf7ee;color:var(--tp-success)}
+.badge-secondary.estado-inactivo{background-color:#eef0f3;color:var(--tp-muted)}
+.pagination .page-link{color:var(--tp-primary)}
+.pagination .page-item.active .page-link{background-color:var(--tp-primary);border-color:var(--tp-primary);color:#fff}
+.pagination .page-link:hover{color:var(--tp-primary-dark)}
+
+@media (max-width: 576px){
+  .toolbar .input-group{width:100%; margin-bottom:.5rem}
+}

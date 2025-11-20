@@ -1,0 +1,15 @@
+table.table td, table.table th{vertical-align:middle}
+.notifs-bg{background:none}
+html, body{height:100%}
+body{background:linear-gradient(135deg,#667eea 0%, #764ba2 100%)}
+.notifs-bg .card{background:#fff;box-shadow:0 0.5rem 1rem rgba(0,0,0,.06);border:1px solid #eee}
+.toolbar .input-group{width:360px}
+.toolbar .form-control{border-color:#dee2e6}
+.toolbar .input-group-text{background-color:#fff;color:#6c757d}
+.table thead th{background-color:#fafafa;font-weight:600}
+.card-header{background:#ffffffd9;font-weight:600;border-bottom:1px solid #e6e6e6}
+.badge-warning{background-color:#fff7e6;color:#d48b00}
+.badge-success{background-color:#eaf7ee;color:#2e7d32}
+.pagination .page-link{color:#0b6fdc}
+.pagination .page-item.active .page-link{background-color:#0b6fdc;border-color:#0b6fdc;color:#fff}
+.pagination .page-link:hover{color:#084e9b}

@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Notificaciones{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'notificaciones/style.css' %}">{% endblock %}
+
+{% block content %}
+<div class="notifs-bg rounded p-3 p-md-4 mb-3">
+  <div class="row metrics mb-3">
+    <div class="col-md-2 mb-3"><div class="card text-center"><div class="card-body"><div class="h6">Total</div><div class="h3">{{ total_notifs }}</div></div></div></div>
+    <div class="col-md-2 mb-3"><div class="card text-center"><div class="card-body"><div class="h6">Leídas</div><div class="h3">{{ notifs_leidas }}</div></div></div></div>
+    <div class="col-md-2 mb-3"><div class="card text-center"><div class="card-body"><div class="h6">No leídas</div><div class="h3">{{ notifs_no_leidas }}</div></div></div></div>
+    <div class="col-md-2 mb-3"><div class="card text-center"><div class="card-body"><div class="h6">Info</div><div class="h3">{{ count_info }}</div></div></div></div>
+    <div class="col-md-2 mb-3"><div class="card text-center"><div class="card-body"><div class="h6">Alerta</div><div class="h3">{{ count_alerta }}</div></div></div></div>
+    <div class="col-md-2 mb-3"><div class="card text-center"><div class="card-body"><div class="h6">Error</div><div class="h3">{{ count_error }}</div></div></div></div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <div>Notificaciones</div>
+      <form class="form-inline toolbar" method="get">
+        <div class="input-group mr-2">
+          <div class="input-group-prepend"><span class="input-group-text">Buscar</span></div>
+          <input type="text" class="form-control" name="q" value="{{ q }}" placeholder="Título o mensaje">
+        </div>
+        <select name="tipo" class="form-control mr-2">
+          <option value="" {% if not tipo %}selected{% endif %}>Todos</option>
+          <option value="info" {% if tipo == 'info' %}selected{% endif %}>Info</option>
+          <option value="alerta" {% if tipo == 'alerta' %}selected{% endif %}>Alerta</option>
+          <option value="error" {% if tipo == 'error' %}selected{% endif %}>Error</option>
+        </select>
+        <select name="canal" class="form-control mr-2">
+          <option value="" {% if not canal %}selected{% endif %}>Todos</option>
+          <option value="web" {% if canal == 'web' %}selected{% endif %}>Web</option>
+          <option value="email" {% if canal == 'email' %}selected{% endif %}>Email</option>
+          <option value="sms" {% if canal == 'sms' %}selected{% endif %}>SMS</option>
+          <option value="push" {% if canal == 'push' %}selected{% endif %}>Push</option>
+        </select>
+        <select name="leida" class="form-control mr-2">
+          <option value="" {% if not leida %}selected{% endif %}>Todas</option>
+          <option value="si" {% if leida == 'si' %}selected{% endif %}>Leídas</option>
+          <option value="no" {% if leida == 'no' %}selected{% endif %}>No leídas</option>
+        </select>
+        <button type="submit" class="btn btn-primary mr-2">Filtrar</button>
+        <a href="{% url 'notificaciones:index' %}" class="btn btn-light">Limpiar</a>
+      </form>
+    </div>
+    <div class="card-body">
+      {% if pref %}
+      <div class="mb-3 p-3 border rounded">
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="preferencias">
+          <div class="form-row align-items-center">
+            <div class="col-auto"><label class="mb-0 font-weight-bold">Preferencias de canal:</label></div>
+            <div class="col-auto form-check">
+              <input class="form-check-input" type="checkbox" id="pref-web" name="canal_web" {% if pref.canal_web %}checked{% endif %}>
+              <label class="form-check-label" for="pref-web">Web</label>
+            </div>
+            <div class="col-auto form-check">
+              <input class="form-check-input" type="checkbox" id="pref-email" name="canal_email" {% if pref.canal_email %}checked{% endif %}>
+              <label class="form-check-label" for="pref-email">Email</label>
+            </div>
+            <div class="col-auto form-check">
+              <input class="form-check-input" type="checkbox" id="pref-sms" name="canal_sms" {% if pref.canal_sms %}checked{% endif %}>
+              <label class="form-check-label" for="pref-sms">SMS</label>
+            </div>
+            <div class="col-auto form-check">
+              <input class="form-check-input" type="checkbox" id="pref-push" name="canal_push" {% if pref.canal_push %}checked{% endif %}>
+              <label class="form-check-label" for="pref-push">Push</label>
+            </div>
+            <div class="col-auto">
+              <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+          </div>
+        </form>
+        {% if saved_pref %}<div class="alert alert-success mt-2">Preferencias guardadas</div>{% endif %}
+      </div>
+      {% endif %}
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Tipo</th>
+              <th>Canal</th>
+              <th>Leída</th>
+              <th>Creado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for n in notificaciones %}
+            <tr>
+              <td>{{ n.titulo }}</td>
+              <td class="text-capitalize">{{ n.tipo }}</td>
+              <td class="text-uppercase">{{ n.canal }}</td>
+              <td>
+                {% if n.leida %}<span class="badge badge-success">Sí</span>
+                {% else %}<span class="badge badge-warning">No</span>{% endif %}
+              </td>
+              <td>{{ n.creado_en }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center">Sin datos</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <nav aria-label="Paginación">
+        <ul class="pagination justify-content-end mb-0">
+          {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&tipo={{ tipo }}&canal={{ canal }}&leida={{ leida }}">Anterior</a></li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+          {% endif %}
+
+          <li class="page-item active"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+
+          {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&tipo={{ tipo }}&canal={{ canal }}&leida={{ leida }}">Siguiente</a></li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'notificaciones/app.js' %}"></script>{% endblock %}

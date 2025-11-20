@@ -1,0 +1,70 @@
+/* Dashboard styles */
+.hero-cc { 
+    background-color: var(--cc-red, #e30613) !important;
+    color: #fff;
+    padding: 2rem;
+    border-radius: .75rem; 
+}
+.hero-card {
+     background: #fff; 
+     border-radius: .75rem; 
+     box-shadow: 0 0.5rem 1rem rgba(0,0,0,.08);
+      padding: 1.5rem; 
+    }
+.hero-card h3 { 
+    font-weight: 700;
+     margin-bottom: .5rem;
+     }
+.hero-card p {
+     margin-bottom: 1rem; 
+    }
+.btn-cc { 
+    background-color: #fff; 
+    color: var(--cc-red, #e30613); 
+    border-color: #fff;
+    font-weight: 600; 
+}
+.btn-cc:hover {
+    background-color: var(--cc-red-dark, #c00510);
+    color: #fff;
+    border-color: var(--cc-red-dark, #c00510); 
+}
+.hero-slide {
+     height: 280px; 
+     border-radius: .75rem; 
+     display: flex;
+      align-items: center;
+       justify-content: center; 
+       background: linear-gradient(135deg, #ffffff 0%, #f2f2f2 100%);
+        color: #666;
+         font-weight: 600; 
+        }
+.metrics .card { 
+    border: 1px solid #ececec;
+ }
+.metrics .h2 { 
+    font-weight: 700; 
+}
+.dashboard-bg{background:none}
+html, body{height:100%}
+body{background:linear-gradient(135deg,#556B2F 0%, #6B8E23 100%)}
+.dashboard-bg .card{background:#fff;box-shadow:0 0.5rem 1rem rgba(0,0,0,.06);border:1px solid #eee}
+.cc-topbar{background:transparent;border-bottom:1px solid rgba(255,255,255,.25);padding:.5rem 0}
+.cc-toplink{color:#fff !important;text-decoration:none;padding-bottom:.25rem}
+.cc-toplink.active{color:#fff;border-bottom:2px solid rgba(255,255,255,.8)}
+.cc-mainnav{background:transparent;border:none}
+.cc-mainnav .container{padding:.75rem 0}
+.cc-logo{font-weight:700;color:#fff;text-decoration:none}
+.cc-nav .nav-link{color:#fff !important;padding:.75rem 1rem;font-weight:500}
+.cc-nav .nav-link:hover{color:#fff;text-decoration:underline}
+.cc-nav .nav-item{margin:0 .25rem}
+.cc-caret{display:inline-block;margin-left:.25rem;border: solid currentColor;border-width: 0 2px 2px 0;padding:2px;transform: rotate(45deg)}
+.cc-outline-btn{border:1px solid var(--cc-red, #e30613);color:var(--cc-red, #e30613);padding:.375rem .75rem;border-radius:2rem;text-decoration:none;font-weight:600}
+.cc-outline-btn:hover{background:var(--cc-red, #e30613);color:#fff}
+.cc-redbar{height:6px;background:var(--cc-red, #e30613)}
+.hero-cc {
+    background-color: var(--cc-red, #e30613) !important;
+    color: #fff;
+    padding: 2rem;
+    border-radius: .75rem; 
+}

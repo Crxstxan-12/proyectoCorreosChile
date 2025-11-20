@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Reporte Seguimiento{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+<style>
+@media print{ .cc-topbar, .cc-mainnav, .cc-redbar, .btn { display:none !important } }
+.brand{font-weight:700;color:#e30613}
+.meta{color:#666}
+</style>
+{% endblock %}
+{% block content %}
+<div class="container py-3">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div><span class="brand">CorreosChile</span> · Reporte de Seguimiento</div>
+    <div class="meta">Fecha: {{ fecha }}</div>
+  </div>
+  <div class="mb-2 meta">Filtros: Texto="{{ q|default:'-' }}" · Estado="{{ estado|default:'-' }}" · Desde="{{ desde|default:'-' }}" · Hasta="{{ hasta|default:'-' }}"</div>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Estado</th>
+          <th>Ubicación</th>
+          <th>Observación</th>
+          <th>Registrado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ev in eventos %}
+        <tr>
+          <td>{{ ev.envio.codigo }}</td>
+          <td>{{ ev.estado }}</td>
+          <td>{{ ev.ubicacion }}</td>
+          <td>{{ ev.observacion|default:"-" }}</td>
+          <td>{{ ev.registrado_en }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center">Sin datos</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <button class="btn btn-primary" onclick="window.print()">Imprimir</button>
+  <a class="btn btn-light" href="{% url 'seguimiento:index' %}">Volver</a>
+  <div class="cc-redbar mt-3"></div>
+{% endblock %}

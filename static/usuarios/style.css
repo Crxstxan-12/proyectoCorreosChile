@@ -1,0 +1,6 @@
+table.table td, table.table th{vertical-align:middle}
+.rol-admin{color:#007bff}
+body{background:linear-gradient(135deg,#43cea2 0%, #185a9d 100%)}
+.card-header{background:#ffffffd9;font-weight:600;border-bottom:1px solid #e6e6e6}
+.login-container{min-height:70vh; display:flex; align-items:center; justify-content:center}
+.login-card{max-width:420px; width:100%}

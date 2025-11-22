@@ -73,9 +73,12 @@
             </div>
           </div>
         </form>
-        {% if saved_pref %}<div class="alert alert-success mt-2">Preferencias guardadas</div>{% endif %}
+      {% if saved_pref %}<div class="alert alert-success mt-2">Preferencias guardadas</div>{% endif %}
       </div>
       {% endif %}
+      <div class="d-flex justify-content-end mb-2">
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'notificaciones:reporte_pdf' %}?q={{ q }}&tipo={{ tipo }}&canal={{ canal }}&leida={{ leida }}">PDF</a>
+      </div>
       <div class="table-responsive">
         <table class="table table-striped">
           <thead>
@@ -85,6 +88,7 @@
               <th>Canal</th>
               <th>Leída</th>
               <th>Creado</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -98,9 +102,21 @@
                 {% else %}<span class="badge badge-warning">No</span>{% endif %}
               </td>
               <td>{{ n.creado_en }}</td>
+              <td>
+                <form method="post" class="d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="toggle_leida">
+                  <input type="hidden" name="notif_id" value="{{ n.id }}">
+                  {% if n.leida %}
+                    <button type="submit" class="btn btn-sm btn-light">Marcar no leída</button>
+                  {% else %}
+                    <button type="submit" class="btn btn-sm btn-primary">Marcar leída</button>
+                  {% endif %}
+                </form>
+              </td>
             </tr>
             {% empty %}
-            <tr><td colspan="5" class="text-center">Sin datos</td></tr>
+            <tr><td colspan="6" class="text-center">Sin datos</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -123,6 +139,7 @@
           {% endif %}
         </ul>
       </nav>
+      {% if toggled %}<div class="alert alert-success mt-2">Estado de lectura actualizado</div>{% endif %}
     </div>
   </div>
 </div>

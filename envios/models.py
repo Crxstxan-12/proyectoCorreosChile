@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from transportista.models import Transportista
 
 class Envio(models.Model):
     ESTADOS = (
@@ -17,6 +18,7 @@ class Envio(models.Model):
     destinatario_nombre = models.CharField(max_length=100)
     direccion_destino = models.CharField(max_length=255)
     usuario = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    transportista = models.ForeignKey(Transportista, null=True, blank=True, on_delete=models.SET_NULL)
     peso_kg = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     costo = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     creado_en = models.DateTimeField(auto_now_add=True)

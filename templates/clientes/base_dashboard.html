@@ -1,0 +1,381 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Estilos específicos del dashboard de clientes */
+    .client-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 200px;
+        border-radius: 15px;
+        color: white;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+        border-left: 4px solid #dc3545;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stats-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #dc3545;
+    }
+    
+    .stats-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .envio-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+    }
+    
+    .envio-card:hover {
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
+    }
+    
+    .status-badge {
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-pendiente { background-color: #ffc107; color: #000; }
+    .status-en_transito { background-color: #17a2b8; color: #fff; }
+    .status-en_reparto { background-color: #fd7e14; color: #fff; }
+    .status-entregado { background-color: #28a745; color: #fff; }
+    .status-devuelto { background-color: #6c757d; color: #fff; }
+    .status-cancelado { background-color: #dc3545; color: #fff; }
+    
+    .sidebar {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        position: sticky;
+        top: 20px;
+    }
+    
+    .sidebar .nav-link {
+        color: #495057;
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 5px;
+        transition: all 0.3s ease;
+    }
+    
+    .sidebar .nav-link:hover {
+        background-color: #f8f9fa;
+        color: #dc3545;
+    }
+    
+    .sidebar .nav-link.active {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .activity-item {
+        padding: 15px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-time {
+        color: #6c757d;
+        font-size: 0.8rem;
+    }
+    
+    .btn-dashboard {
+        border-radius: 25px;
+        padding: 10px 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-dashboard:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background-color: #dc3545;
+        color: white;
+        border-radius: 50%;
+        padding: 2px 6px;
+        font-size: 0.7rem;
+        font-weight: bold;
+    }
+    
+    .tracking-timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .tracking-timeline::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background-color: #e9ecef;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+        padding-left: 20px;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -8px;
+        top: 5px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background-color: #dc3545;
+        border: 3px solid white;
+        box-shadow: 0 0 0 3px #dc3545;
+    }
+    
+    .timeline-item.completed::before {
+        background-color: #28a745;
+        box-shadow: 0 0 0 3px #28a745;
+    }
+    
+    @media (max-width: 768px) {
+        .client-dashboard {
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-card {
+            margin-bottom: 15px;
+        }
+        
+        .sidebar {
+            margin-bottom: 20px;
+            position: relative;
+            top: 0;
+        }
+        
+        .stats-number {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block navbar %}
+<!-- Navbar personalizado para el dashboard de clientes -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'clientes:dashboard_cliente' %}">
+            <i class="fas fa-user-circle mr-2"></i>Mi Dashboard
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarDashboard">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarDashboard">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'clientes:dashboard_cliente' %}">
+                        <i class="fas fa-home mr-1"></i>Inicio
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'clientes:mis_envios' %}">
+                        <i class="fas fa-box mr-1"></i>Mis Envíos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'clientes:notificaciones_cliente' %}">
+                        <i class="fas fa-bell mr-1"></i>Notificaciones
+                        {% if notificaciones_no_leidas > 0 %}
+                            <span class="notification-badge">{{ notificaciones_no_leidas }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown">
+                        <i class="fas fa-user mr-1"></i>{{ user.get_full_name|default:user.username }}
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        <a class="dropdown-item" href="{% url 'clientes:perfil_cliente' %}">
+                            <i class="fas fa-user-cog mr-2"></i>Mi Perfil
+                        </a>
+                        <a class="dropdown-item" href="{% url 'clientes:preferencias_notificaciones' %}">
+                            <i class="fas fa-bell mr-2"></i>Preferencias
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{% url 'usuarios:logout' %}">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Cerrar Sesión
+                        </a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar para desktop -->
+        <div class="col-lg-3 d-none d-lg-block">
+            <div class="sidebar">
+                <h5 class="mb-4">
+                    <i class="fas fa-user-circle mr-2"></i>Menú Cliente
+                </h5>
+                <nav class="nav flex-column">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_cliente' %}active{% endif %}" 
+                       href="{% url 'clientes:dashboard_cliente' %}">
+                        <i class="fas fa-home mr-2"></i>Inicio
+                    </a>
+                    <a class="nav-link {% if 'mis_envios' in request.resolver_match.url_name %}active{% endif %}" 
+                       href="{% url 'clientes:mis_envios' %}">
+                        <i class="fas fa-box mr-2"></i>Mis Envíos
+                    </a>
+                    <a class="nav-link {% if 'detalle_envio' in request.resolver_match.url_name %}active{% endif %}" 
+                       href="#">
+                        <i class="fas fa-search mr-2"></i>Seguimiento
+                    </a>
+                    <a class="nav-link {% if 'notificaciones' in request.resolver_match.url_name %}active{% endif %}" 
+                       href="{% url 'clientes:notificaciones_cliente' %}">
+                        <i class="fas fa-bell mr-2"></i>Notificaciones
+                        {% if notificaciones_no_leidas > 0 %}
+                            <span class="badge badge-danger ml-auto">{{ notificaciones_no_leidas }}</span>
+                        {% endif %}
+                    </a>
+                    <hr>
+                    <a class="nav-link {% if 'perfil' in request.resolver_match.url_name %}active{% endif %}" 
+                       href="{% url 'clientes:perfil_cliente' %}">
+                        <i class="fas fa-user-cog mr-2"></i>Mi Perfil
+                    </a>
+                    <a class="nav-link {% if 'preferencias' in request.resolver_match.url_name %}active{% endif %}" 
+                       href="{% url 'clientes:preferencias_notificaciones' %}">
+                        <i class="fas fa-cog mr-2"></i>Preferencias
+                    </a>
+                    <hr>
+                    <a class="nav-link" href="{% url 'clientes:descargar_reporte' %}">
+                        <i class="fas fa-download mr-2"></i>Descargar Reporte
+                    </a>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- Contenido principal -->
+        <div class="col-lg-9">
+            {% block dashboard_content %}
+            {% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Font Awesome para iconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+<script>
+// Funciones JavaScript para el dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    // Marcar notificaciones como leídas
+    const notificacionLinks = document.querySelectorAll('.notificacion-link');
+    notificacionLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const notificacionId = this.dataset.notificacionId;
+            
+            fetch('{% url "clientes:notificaciones_cliente" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: 'notificacion_id=' + notificacionId
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.classList.remove('font-weight-bold');
+                    this.querySelector('.badge').remove();
+                }
+            });
+        });
+    });
+    
+    // Filtros dinámicos
+    const filterForm = document.getElementById('filterForm');
+    if (filterForm) {
+        const filterInputs = filterForm.querySelectorAll('input, select');
+        filterInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                filterForm.submit();
+            });
+        });
+    }
+});
+
+// Función para copiar código de seguimiento
+function copiarCodigo(codigo) {
+    navigator.clipboard.writeText(codigo).then(function() {
+        // Mostrar mensaje de éxito
+        const toast = document.createElement('div');
+        toast.className = 'position-fixed top-0 end-0 p-3';
+        toast.style.zIndex = '1050';
+        toast.innerHTML = `
+            <div class="toast show" role="alert">
+                <div class="toast-header">
+                    <strong class="mr-auto">Código Copiado</strong>
+                    <button type="button" class="ml-2 mb-1 close" data-dismiss="toast">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="toast-body">
+                    El código ${codigo} ha sido copiado al portapapeles.
+                </div>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    });
+}
+</script>
+{% endblock %}

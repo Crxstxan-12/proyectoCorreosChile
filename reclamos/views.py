@@ -5,7 +5,10 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from .models import Reclamo
 from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+from usuarios.models import Perfil
 
+@login_required
 def index(request):
     q = request.GET.get('q', '').strip()
     estado = request.GET.get('estado', '').strip()
@@ -85,12 +88,16 @@ def index(request):
     }
     return render(request, 'reclamos/index.html', ctx)
 
+@login_required
 def detalle(request, pk):
     r = get_object_or_404(Reclamo, pk=pk)
     estados = [e[0] for e in Reclamo.ESTADOS]
     tipos = [t[0] for t in Reclamo.TIPOS]
     saved = False
     if request.method == 'POST':
+        permitido = Perfil.objects.filter(user=request.user, rol__in=['administrador','editor']).exists()
+        if not permitido:
+            return redirect('reclamos:detalle', pk=r.id)
         nuevo_estado = (request.POST.get('estado') or '').strip()
         respuesta = (request.POST.get('respuesta') or '').strip() or None
         if nuevo_estado in estados:
@@ -107,6 +114,7 @@ def detalle(request, pk):
     }
     return render(request, 'reclamos/detalle.html', ctx)
 
+@login_required
 def reporte_pdf(request):
     q = request.GET.get('q', '').strip()
     estado = request.GET.get('estado', '').strip()

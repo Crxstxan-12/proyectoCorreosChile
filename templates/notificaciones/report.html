@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Reporte Notificaciones{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+<style>
+@media print{ .cc-topbar, .cc-mainnav, .cc-redbar, .btn { display:none !important } }
+.brand{font-weight:700;color:#e30613}
+.meta{color:#666}
+</style>
+{% endblock %}
+{% block content %}
+<div class="container py-3">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div><span class="brand">CorreosChile</span> · Reporte de Notificaciones</div>
+    <div class="meta">Fecha: {{ fecha }}</div>
+  </div>
+  <div class="mb-2 meta">Filtros: Texto="{{ q|default:'-' }}" · Tipo="{{ tipo|default:'-' }}" · Canal="{{ canal|default:'-' }}" · Leída="{{ leida|default:'-' }}"</div>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Tipo</th>
+          <th>Canal</th>
+          <th>Leída</th>
+          <th>Creado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for n in notificaciones %}
+        <tr>
+          <td>{{ n.titulo }}</td>
+          <td class="text-capitalize">{{ n.tipo }}</td>
+          <td class="text-uppercase">{{ n.canal }}</td>
+          <td>{% if n.leida %}Sí{% else %}No{% endif %}</td>
+          <td>{{ n.creado_en }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center">Sin datos</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <button class="btn btn-primary" onclick="window.print()">Imprimir</button>
+  <a class="btn btn-light" href="{% url 'notificaciones:index' %}">Volver</a>
+  <div class="cc-redbar mt-3"></div>
+{% endblock %}

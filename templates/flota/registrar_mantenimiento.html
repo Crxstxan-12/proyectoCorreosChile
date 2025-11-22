@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Registrar Mantenimiento - Flota{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-6 mb-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold text-white mb-2">Registrar Mantenimiento</h1>
+                        <p class="text-blue-100">Complete el formulario para registrar el mantenimiento del vehículo</p>
+                    </div>
+                    <div class="bg-white bg-opacity-20 rounded-full p-3">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.066 3.414H7.48c-1.433 0-2.326-2.154-1.066-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Vehicle Selection -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="id_vehiculo" class="block text-sm font-medium text-gray-700 mb-2">
+                                Vehículo *
+                            </label>
+                            <select name="vehiculo" id="id_vehiculo" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">-- Seleccione un vehículo --</option>
+                                {% for vehiculo in vehiculos %}
+                                    <option value="{{ vehiculo.id }}">{{ vehiculo.numero_placa }} - {{ vehiculo.modelo }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="id_tipo_mantenimiento" class="block text-sm font-medium text-gray-700 mb-2">
+                                Tipo de Mantenimiento *
+                            </label>
+                            <select name="tipo_mantenimiento" id="id_tipo_mantenimiento" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="preventivo">Preventivo</option>
+                                <option value="correctivo">Correctivo</option>
+                                <option value="predictivo">Predictivo</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Date and Mileage -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="id_fecha_mantenimiento" class="block text-sm font-medium text-gray-700 mb-2">
+                                Fecha de Mantenimiento *
+                            </label>
+                            <input type="date" name="fecha_mantenimiento" id="id_fecha_mantenimiento" required
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+
+                        <div>
+                            <label for="id_kilometraje_actual" class="block text-sm font-medium text-gray-700 mb-2">
+                                Kilometraje Actual (km)
+                            </label>
+                            <input type="number" name="kilometraje_actual" id="id_kilometraje_actual" min="0"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+
+                    <!-- Description and Work Done -->
+                    <div class="space-y-6">
+                        <div>
+                            <label for="id_descripcion_trabajo" class="block text-sm font-medium text-gray-700 mb-2">
+                                Descripción del Trabajo Realizado *
+                            </label>
+                            <textarea name="descripcion_trabajo" id="id_descripcion_trabajo" rows="4" required
+                                      placeholder="Describa detalladamente el trabajo de mantenimiento realizado..."
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"></textarea>
+                        </div>
+
+                        <div>
+                            <label for="id_observaciones" class="block text-sm font-medium text-gray-700 mb-2">
+                                Observaciones
+                            </label>
+                            <textarea name="observaciones" id="id_observaciones" rows="3"
+                                      placeholder="Ingrese cualquier observación adicional..."
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Cost and Provider -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="id_costo_total" class="block text-sm font-medium text-gray-700 mb-2">
+                                Costo Total ($)
+                            </label>
+                            <input type="number" name="costo_total" id="id_costo_total" min="0" step="0.01"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+
+                        <div>
+                            <label for="id_proveedor" class="block text-sm font-medium text-gray-700 mb-2">
+                                Proveedor de Servicio
+                            </label>
+                            <input type="text" name="proveedor" id="id_proveedor" maxlength="100"
+                                   placeholder="Nombre del taller o proveedor"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+
+                    <!-- Next Maintenance -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="id_proximo_mantenimiento_fecha" class="block text-sm font-medium text-gray-700 mb-2">
+                                Próximo Mantenimiento (Fecha)
+                            </label>
+                            <input type="date" name="proximo_mantenimiento_fecha" id="id_proximo_mantenimiento_fecha"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+
+                        <div>
+                            <label for="id_proximo_mantenimiento_km" class="block text-sm font-medium text-gray-700 mb-2">
+                                Próximo Mantenimiento (Kilometraje)
+                            </label>
+                            <input type="number" name="proximo_mantenimiento_km" id="id_proximo_mantenimiento_km" min="0"
+                                   placeholder="Kilometraje para próximo mantenimiento"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+
+                    <!-- Photos -->
+                    <div>
+                        <label for="id_fotos" class="block text-sm font-medium text-gray-700 mb-2">
+                            Fotos del Mantenimiento
+                        </label>
+                        <input type="file" name="fotos" id="id_fotos" multiple accept="image/*"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <p class="text-sm text-gray-500 mt-1">Puede seleccionar múltiples fotos. Formatos aceptados: JPG, PNG, JPEG</p>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex justify-end space-x-4">
+                        <a href="{% url 'flota:dashboard_flota' %}" 
+                           class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                            Cancelar
+                        </a>
+                        <button type="submit" 
+                                class="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all transform hover:scale-105">
+                            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2"></path>
+                            </svg>
+                            Registrar Mantenimiento
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-set today's date
+document.getElementById('id_fecha_mantenimiento').valueAsDate = new Date();
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const vehiculo = document.getElementById('id_vehiculo').value;
+    const tipoMantenimiento = document.getElementById('id_tipo_mantenimiento').value;
+    const descripcion = document.getElementById('id_descripcion_trabajo').value.trim();
+    
+    if (!vehiculo || !tipoMantenimiento || !descripcion) {
+        e.preventDefault();
+        alert('Por favor complete todos los campos obligatorios.');
+        return;
+    }
+    
+    // Validate dates
+    const fechaMantenimiento = document.getElementById('id_fecha_mantenimiento').value;
+    const proximaFecha = document.getElementById('id_proximo_mantenimiento_fecha').value;
+    
+    if (proximaFecha && fechaMantenimiento >= proximaFecha) {
+        e.preventDefault();
+        alert('La fecha del próximo mantenimiento debe ser posterior a la fecha actual.');
+        return;
+    }
+});
+</script>
+{% endblock %}

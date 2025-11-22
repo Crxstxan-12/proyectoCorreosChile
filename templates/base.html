@@ -1,4 +1,4 @@
-
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,7 +6,7 @@
     <title>{% block title %}Correos Chile{% endblock %}</title>
     {% load static %}
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{% static 'css/estilos.css?v=4' %}">
+    <link rel="stylesheet" href="{% static 'css/estilos.css?v=5' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="d-flex flex-column min-vh-100">
@@ -15,10 +15,6 @@
     <div class="cc-menu-env">
       <div class="cc-topbar">
         <div class="container d-flex justify-content-between">
-          <div class="d-flex align-items-center">
-            <a href="#" class="cc-toplink active">Persona</a>
-            <a href="#" class="cc-toplink ml-3">Empresas</a>
-          </div>
           <div class="text-muted">Corporativo</div>
         </div>
       </div>
@@ -26,11 +22,13 @@
         <div class="container d-flex align-items-center justify-content-between">
           <a href="{% url 'home' %}" class="cc-logo">CorreosChile</a>
           <ul class="nav cc-nav">
+            <li class="nav-item"><a class="nav-link" href="{% url 'paquetes:dashboard_publico' %}">📦 Seguimiento</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'envios:index' %}">Envíos</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'ecommerce:index' %}">E-commerce</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'transportista:index' %}">Transportistas</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'seguimiento:index' %}">Seguimiento</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'reclamos:index' %}">Reclamos</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'notificaciones:index' %}">Notificaciones</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'transportista:index' %}">Transportistas</a></li>
           </ul>
           <div class="d-flex align-items-center">
             {% if user.is_authenticated %}
@@ -54,7 +52,7 @@
     {% block footer %}
     <footer class="bg-white border-top py-4">
         <div class="container text-center text-muted">
-            © 2025 Correos Chile
+            © CorreosChile
         </div>
     </footer>
     {% endblock %}

@@ -2,8 +2,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.db.models import Q
 from .models import Transportista
+from django.contrib.auth.decorators import login_required
+from usuarios.models import Perfil
 
+@login_required
 def index(request):
+    permitido = Perfil.objects.filter(user=request.user, rol__in=['administrador','editor']).exists()
+    if not permitido:
+        return redirect('usuarios:index')
     q = request.GET.get('q', '').strip()
     estado = request.GET.get('estado', '').strip()
     queryset = Transportista.objects.all()
@@ -30,8 +36,12 @@ def index(request):
     }
     return render(request, 'transportista/index.html', ctx)
 
+@login_required
 def crear(request):
     if request.method == 'POST':
+        permitido = Perfil.objects.filter(user=request.user, rol__in=['administrador','editor']).exists()
+        if not permitido:
+            return redirect('transportista:index')
         nombre = (request.POST.get('nombre') or '').strip()
         rut = (request.POST.get('rut') or '').strip()
         tipo = (request.POST.get('tipo') or '').strip() or 'empresa'
@@ -45,9 +55,13 @@ def crear(request):
         return redirect('transportista:index')
     return render(request, 'transportista/form.html', {'t': None, 'tipos': [x[0] for x in Transportista.TIPOS]})
 
+@login_required
 def editar(request, pk):
     t = get_object_or_404(Transportista, pk=pk)
     if request.method == 'POST':
+        permitido = Perfil.objects.filter(user=request.user, rol__in=['administrador','editor']).exists()
+        if not permitido:
+            return redirect('transportista:index')
         t.nombre = (request.POST.get('nombre') or '').strip()
         t.rut = (request.POST.get('rut') or '').strip()
         t.tipo = (request.POST.get('tipo') or '').strip() or 'empresa'
@@ -59,9 +73,13 @@ def editar(request, pk):
         return redirect('transportista:index')
     return render(request, 'transportista/form.html', {'t': t, 'tipos': [x[0] for x in Transportista.TIPOS]})
 
+@login_required
 def toggle(request, pk):
     t = get_object_or_404(Transportista, pk=pk)
     if request.method == 'POST':
+        permitido = Perfil.objects.filter(user=request.user, rol__in=['administrador','editor']).exists()
+        if not permitido:
+            return redirect('transportista:index')
         t.activo = not t.activo
         t.save()
     return redirect('transportista:index')

@@ -1,0 +1,441 @@
+{% extends 'clientes/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Mi Perfil - {{ block.super }}{% endblock %}
+
+{% block dashboard_content %}
+<!-- Encabezado -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1">
+                    <i class="fas fa-user-cog mr-2 text-primary"></i>
+                    Mi Perfil
+                </h2>
+                <p class="text-muted mb-0">Gestiona tu información personal y preferencias</p>
+            </div>
+            <div>
+                <button type="button" class="btn btn-outline-danger" data-toggle="modal" data-target="#modalDesactivar">
+                    <i class="fas fa-user-slash mr-2"></i>Desactivar Cuenta
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información Personal -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">
+                    <i class="fas fa-user mr-2 text-primary"></i>
+                    Información Personal
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" id="perfilForm">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="first_name">Nombre *</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" 
+                                       value="{{ user.first_name }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="last_name">Apellido *</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" 
+                                       value="{{ user.last_name }}" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="email">Correo Electrónico *</label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="{{ user.email }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="telefono">Teléfono</label>
+                                <input type="tel" class="form-control" id="telefono" name="telefono" 
+                                       value="{{ cliente.telefono|default:'' }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="direccion">Dirección</label>
+                                <textarea class="form-control" id="direccion" name="direccion" 
+                                          rows="2">{{ cliente.direccion|default:'' }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="ciudad">Ciudad</label>
+                                <input type="text" class="form-control" id="ciudad" name="ciudad" 
+                                       value="{{ cliente.ciudad|default:'' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="codigo_postal">Código Postal</label>
+                                <input type="text" class="form-control" id="codigo_postal" name="codigo_postal" 
+                                       value="{{ cliente.codigo_postal|default:'' }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="reset" class="btn btn-outline-secondary">
+                            <i class="fas fa-undo mr-2"></i>Restablecer
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save mr-2"></i>Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Preferencias de Notificación -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">
+                    <i class="fas fa-bell mr-2 text-warning"></i>
+                    Preferencias de Notificación
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">Elige cómo te gustaría recibir notificaciones sobre tus envíos.</p>
+                
+                <form method="post" action="{% url 'clientes:preferencias_notificaciones' %}">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="custom-control custom-switch mb-3">
+                                <input type="checkbox" class="custom-control-input" id="preferencias_email" 
+                                       name="preferencias_email" {% if cliente.preferencias_email %}checked{% endif %}>
+                                <label class="custom-control-label" for="preferencias_email">
+                                    <i class="fas fa-envelope mr-2"></i>Correo Electrónico
+                                </label>
+                            </div>
+                            
+                            <div class="custom-control custom-switch mb-3">
+                                <input type="checkbox" class="custom-control-input" id="preferencias_sms" 
+                                       name="preferencias_sms" {% if cliente.preferencias_sms %}checked{% endif %}>
+                                <label class="custom-control-label" for="preferencias_sms">
+                                    <i class="fas fa-sms mr-2"></i>SMS
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="custom-control custom-switch mb-3">
+                                <input type="checkbox" class="custom-control-input" id="preferencias_whatsapp" 
+                                       name="preferencias_whatsapp" {% if cliente.preferencias_whatsapp %}checked{% endif %}>
+                                <label class="custom-control-label" for="preferencias_whatsapp">
+                                    <i class="fab fa-whatsapp mr-2"></i>WhatsApp
+                                </label>
+                            </div>
+                            
+                            <div class="custom-control custom-switch mb-3">
+                                <input type="checkbox" class="custom-control-input" id="preferencias_push" 
+                                       name="preferencias_push" {% if cliente.preferencias_push %}checked{% endif %}>
+                                <label class="custom-control-label" for="preferencias_push">
+                                    <i class="fas fa-bell mr-2"></i>Notificaciones Push
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <small>
+                            Las notificaciones se enviarán automáticamente cuando haya cambios en el estado de tus envíos.
+                            Puedes actualizar estas preferencias en cualquier momento.
+                        </small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-save mr-2"></i>Actualizar Preferencias
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Configuración de Privacidad -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">
+                    <i class="fas fa-lock mr-2 text-success"></i>
+                    Configuración de Privacidad
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="custom-control custom-switch mb-3">
+                                <input type="checkbox" class="custom-control-input" id="mostrar_telefono" 
+                                       name="mostrar_telefono" {% if cliente.mostrar_telefono %}checked{% endif %}>
+                                <label class="custom-control-label" for="mostrar_telefono">
+                                    Mostrar teléfono en reportes
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="custom-control custom-switch mb-3">
+                                <input type="checkbox" class="custom-control-input" id="mostrar_direccion" 
+                                       name="mostrar_direccion" {% if cliente.mostrar_direccion %}checked{% endif %}>
+                                <label class="custom-control-label" for="mostrar_direccion">
+                                    Mostrar dirección en reportes
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        <small>
+                            Estas opciones controlan si tu información aparece en reportes compartidos. 
+                            Tu información siempre será visible para el personal autorizado de CorreosChile.
+                        </small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-shield-alt mr-2"></i>Guardar Configuración
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Columna derecha con información adicional -->
+    <div class="col-lg-4">
+        <!-- Resumen de la cuenta -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie mr-2 text-info"></i>
+                    Resumen de tu Cuenta
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="h4 text-primary">{{ cliente.total_envios }}</div>
+                        <div class="small text-muted">Total Envíos</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="h4 text-warning">{{ cliente.envios_activos }}</div>
+                        <div class="small text-muted">Activos</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="h4 text-success">{{ cliente.total_envios|add:0|add:cliente.envios_activos|add:0 }}</div>
+                        <div class="small text-muted">Completados</div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="small text-muted">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Miembro desde:</span>
+                        <strong>{{ cliente.fecha_registro|date:"d/m/Y" }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Última actualización:</span>
+                        <strong>{{ cliente.user.last_login|date:"d/m/Y H:i" }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Estado:</span>
+                        <span class="badge badge-success">
+                            <i class="fas fa-check-circle mr-1"></i>Activo
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Direcciones de entrega -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-map-marker-alt mr-2 text-primary"></i>
+                    Direcciones de Entrega
+                </h5>
+                <a href="{% url 'clientes:agregar_direccion' %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-plus mr-1"></i>Agregar
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if direcciones %}
+                    <div class="list-group list-group-flush">
+                        {% for direccion in direcciones %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            {{ direccion.nombre }}
+                                            {% if direccion.es_principal %}
+                                                <span class="badge badge-primary ml-2">Principal</span>
+                                            {% endif %}
+                                        </h6>
+                                        <p class="mb-1 small text-muted">{{ direccion.direccion }}</p>
+                                        <small>{{ direccion.ciudad }} - {{ direccion.codigo_postal }}</small>
+                                    </div>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button type="button" class="btn btn-outline-secondary" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-map-marker-alt fa-2x text-muted mb-2"></i>
+                        <p class="small text-muted">No tienes direcciones guardadas.</p>
+                        <a href="{% url 'clientes:agregar_direccion' %}" class="btn btn-sm btn-primary">
+                            Agregar Primera Dirección
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Enlaces útiles -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">
+                    <i class="fas fa-link mr-2 text-secondary"></i>
+                    Enlaces Útiles
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'clientes:mis_envios' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-box mr-2"></i>Mis Envíos
+                    </a>
+                    <a href="{% url 'clientes:notificaciones_cliente' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-bell mr-2"></i>Centro de Notificaciones
+                    </a>
+                    <a href="{% url 'clientes:descargar_reporte' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-download mr-2"></i>Descargar Reporte
+                    </a>
+                    <a href="{% url 'reclamos:index' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-headset mr-2"></i>Soporte y Reclamos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación -->
+<div class="modal fade" id="modalDesactivar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle mr-2 text-warning"></i>
+                    ¿Desactivar tu cuenta?
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas desactivar tu cuenta?</p>
+                <ul class="small text-muted">
+                    <li>Perderás acceso a tu dashboard de cliente</li>
+                    <li>No podrás realizar seguimiento de envíos</li>
+                    <li>Tus preferencias de notificación se desactivarán</li>
+                    <li>Puedes reactivar tu cuenta contactando a soporte</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger">
+                    <i class="fas fa-user-slash mr-2"></i>Sí, Desactivar Cuenta
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+// Validación del formulario
+document.addEventListener('DOMContentLoaded', function() {
+    const perfilForm = document.getElementById('perfilForm');
+    
+    perfilForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validar campos requeridos
+        const requiredFields = perfilForm.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(function(field) {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (isValid) {
+            // Mostrar confirmación antes de enviar
+            if (confirm('¿Estás seguro de que deseas guardar estos cambios?')) {
+                perfilForm.submit();
+            }
+        }
+    });
+    
+    // Remover clase de error al escribir
+    const inputs = perfilForm.querySelectorAll('input, textarea');
+    inputs.forEach(function(input) {
+        input.addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+        });
+    });
+});
+
+// Mostrar vista previa de imagen de perfil (si se agrega en el futuro)
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            document.getElementById('preview').src = e.target.result;
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+{% endblock %}

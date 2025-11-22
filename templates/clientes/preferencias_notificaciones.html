@@ -1,0 +1,490 @@
+{% extends 'clientes/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Preferencias de Notificaciones - {{ block.super }}{% endblock %}
+
+{% block dashboard_content %}
+<!-- Encabezado -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1">
+                    <i class="fas fa-cog mr-2 text-warning"></i>
+                    Preferencias de Notificaciones
+                </h2>
+                <p class="text-muted mb-0">Personaliza cómo te notificamos sobre tus envíos</p>
+            </div>
+            <div>
+                <a href="{% url 'clientes:notificaciones_cliente' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left mr-2"></i>Volver a Notificaciones
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información general -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle fa-2x mr-3"></i>
+                <div>
+                    <h6 class="alert-heading">¿Cómo funcionan las notificaciones?</h6>
+                    <p class="mb-0">
+                        Recibirás notificaciones automáticas cuando haya cambios en el estado de tus envíos. 
+                        Puedes elegir los canales que prefieras y gestionar tus preferencias en cualquier momento.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Canales de notificación -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">
+                    <i class="fas fa-broadcast-tower mr-2 text-primary"></i>
+                    Canales de Notificación
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" id="preferenciasForm">
+                    {% csrf_token %}
+                    
+                    <!-- Correo Electrónico -->
+                    <div class="notification-channel mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 50px; height: 50px;">
+                                <i class="fas fa-envelope fa-lg"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">Correo Electrónico</h6>
+                                <p class="text-muted mb-0 small">Recibirás notificaciones detalladas en tu bandeja de entrada</p>
+                            </div>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="preferencias_email" 
+                                       name="preferencias_email" {% if cliente.preferencias_email %}checked{% endif %}>
+                                <label class="custom-control-label" for="preferencias_email"></label>
+                            </div>
+                        </div>
+                        
+                        {% if cliente.preferencias_email %}
+                            <div class="alert alert-success alert-sm">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                Las notificaciones por correo están activadas para: <strong>{{ cliente.email }}</strong>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-light alert-sm">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Las notificaciones por correo están desactivadas
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- SMS -->
+                    <div class="notification-channel mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 50px; height: 50px;">
+                                <i class="fas fa-sms fa-lg"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">Mensajes de Texto (SMS)</h6>
+                                <p class="text-muted mb-0 small">Notificaciones breves directamente a tu móvil</p>
+                            </div>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="preferencias_sms" 
+                                       name="preferencias_sms" {% if cliente.preferencias_sms %}checked{% endif %}>
+                                <label class="custom-control-label" for="preferencias_sms"></label>
+                            </div>
+                        </div>
+                        
+                        {% if cliente.preferencias_sms %}
+                            {% if cliente.telefono %}
+                                <div class="alert alert-success alert-sm">
+                                    <i class="fas fa-check-circle mr-2"></i>
+                                    Las notificaciones por SMS están activadas para: <strong>{{ cliente.telefono }}</strong>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning alert-sm">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    Las notificaciones por SMS están activadas, pero necesitas agregar un número de teléfono en tu perfil.
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="alert alert-light alert-sm">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Las notificaciones por SMS están desactivadas
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- WhatsApp -->
+                    <div class="notification-channel mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 50px; height: 50px;">
+                                <i class="fab fa-whatsapp fa-lg"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">WhatsApp</h6>
+                                <p class="text-muted mb-0 small">Notificaciones rápidas y enriquecidas por WhatsApp</p>
+                            </div>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="preferencias_whatsapp" 
+                                       name="preferencias_whatsapp" {% if cliente.preferencias_whatsapp %}checked{% endif %}>
+                                <label class="custom-control-label" for="preferencias_whatsapp"></label>
+                            </div>
+                        </div>
+                        
+                        {% if cliente.preferencias_whatsapp %}
+                            {% if cliente.telefono %}
+                                <div class="alert alert-success alert-sm">
+                                    <i class="fas fa-check-circle mr-2"></i>
+                                    Las notificaciones por WhatsApp están activadas para: <strong>{{ cliente.telefono }}</strong>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning alert-sm">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    Las notificaciones por WhatsApp están activadas, pero necesitas agregar un número de teléfono en tu perfil.
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="alert alert-light alert-sm">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Las notificaciones por WhatsApp están desactivadas
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Notificaciones Push -->
+                    <div class="notification-channel mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 50px; height: 50px;">
+                                <i class="fas fa-bell fa-lg"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">Notificaciones Push (Web)</h6>
+                                <p class="text-muted mb-0 small">Notificaciones emergentes en tu navegador</p>
+                            </div>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="preferencias_push" 
+                                       name="preferencias_push" {% if cliente.preferencias_push %}checked{% endif %}>
+                                <label class="custom-control-label" for="preferencias_push"></label>
+                            </div>
+                        </div>
+                        
+                        {% if cliente.preferencias_push %}
+                            <div class="alert alert-success alert-sm">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                Las notificaciones push están activadas
+                            </div>
+                        {% else %}
+                            <div class="alert alert-light alert-sm">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Las notificaciones push están desactivadas
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary" onclick="restablecerPreferencias()">
+                            <i class="fas fa-undo mr-2"></i>Restablecer
+                        </button>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save mr-2"></i>Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Tipos de notificaciones -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">
+                    <i class="fas fa-list mr-2 text-success"></i>
+                    Tipos de Notificaciones
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Recibirás notificaciones automáticas para los siguientes eventos:
+                </p>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="notification-type mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 35px; height: 35px;">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Envío Creado</h6>
+                                    <p class="text-muted small mb-0">Cuando se registra un nuevo envío</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="notification-type mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 35px; height: 35px;">
+                                    <i class="fas fa-truck"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">En Tránsito</h6>
+                                    <p class="text-muted small mb-0">Cuando el envío está en camino</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="notification-type mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 35px; height: 35px;">
+                                    <i class="fas fa-shipping-fast"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">En Reparto</h6>
+                                    <p class="text-muted small mb-0">Cuando está en proceso de entrega</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="notification-type mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 35px; height: 35px;">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Entregado</h6>
+                                    <p class="text-muted small mb-0">Cuando se completa la entrega</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="notification-type mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 35px; height: 35px;">
+                                    <i class="fas fa-exclamation"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Demorado</h6>
+                                    <p class="text-muted small mb-0">Si hay retrasos en la entrega</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="notification-type mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 35px; height: 35px;">
+                                    <i class="fas fa-bell"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">Recordatorio</h6>
+                                    <p class="text-muted small mb-0">Recordatorios de entrega pendiente</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Columna derecha con consejos y ayuda -->
+    <div class="col-lg-4">
+        <!-- Consejos de seguridad -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">
+                    <i class="fas fa-shield-alt mr-2 text-info"></i>
+                    Consejos de Seguridad
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="security-tip mb-3">
+                    <h6 class="text-primary mb-2">
+                        <i class="fas fa-envelope mr-2"></i>Correo Electrónico
+                    </h6>
+                    <p class="small text-muted mb-0">
+                        Asegúrate de que tu dirección de correo esté actualizada para recibir notificaciones importantes.
+                    </p>
+                </div>
+                
+                <div class="security-tip mb-3">
+                    <h6 class="text-success mb-2">
+                        <i class="fas fa-sms mr-2"></i>SMS
+                    </h6>
+                    <p class="small text-muted mb-0">
+                        Los mensajes de texto son ideales para notificaciones urgentes cuando no tienes conexión a internet.
+                    </p>
+                </div>
+                
+                <div class="security-tip mb-3">
+                    <h6 class="text-info mb-2">
+                        <i class="fab fa-whatsapp mr-2"></i>WhatsApp
+                    </h6>
+                    <p class="small text-muted mb-0">
+                        WhatsApp permite notificaciones más detalladas y enriquecidas con imágenes y enlaces.
+                    </p>
+                </div>
+                
+                <div class="security-tip">
+                    <h6 class="text-warning mb-2">
+                        <i class="fas fa-bell mr-2"></i>Frecuencia
+                    </h6>
+                    <p class="small text-muted mb-0">
+                        Puedes ajustar la frecuencia de notificaciones para evitar saturación de mensajes.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ayuda y soporte -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">
+                    <i class="fas fa-question-circle mr-2 text-secondary"></i>
+                    ¿Necesitas Ayuda?
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="help-item mb-3">
+                    <h6 class="mb-2">
+                        <i class="fas fa-phone mr-2 text-primary"></i>
+                        Soporte Telefónico
+                    </h6>
+                    <p class="small text-muted mb-0">
+                        Llámanos al <strong>600 600 0000</strong> de lunes a viernes de 9:00 a 18:00 hrs.
+                    </p>
+                </div>
+                
+                <div class="help-item mb-3">
+                    <h6 class="mb-2">
+                        <i class="fas fa-envelope mr-2 text-success"></i>
+                        Soporte por Email
+                    </h6>
+                    <p class="small text-muted mb-0">
+                        Escríbenos a <strong>soporte@correoschile.cl</strong> y te responderemos en 24 horas.
+                    </p>
+                </div>
+                
+                <div class="help-item">
+                    <h6 class="mb-2">
+                        <i class="fas fa-comments mr-2 text-info"></i>
+                        Chat en Vivo
+                    </h6>
+                    <p class="small text-muted mb-0">
+                        Disponible en horario hábil para resolver tus dudas al instante.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+// Funciones para la página de preferencias
+document.addEventListener('DOMContentLoaded', function() {
+    const preferenciasForm = document.getElementById('preferenciasForm');
+    
+    // Mostrar confirmación antes de guardar
+    preferenciasForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const cambios = [];
+        const switches = this.querySelectorAll('.custom-control-input');
+        
+        switches.forEach(switchInput => {
+            const nombre = switchInput.name;
+            const estado = switchInput.checked;
+            const estadoAnterior = switchInput.defaultChecked;
+            
+            if (estado !== estadoAnterior) {
+                cambios.push({
+                    nombre: nombre,
+                    estado: estado ? 'activado' : 'desactivado'
+                });
+            }
+        });
+        
+        if (cambios.length > 0) {
+            let mensaje = 'Se realizarán los siguientes cambios:\n\n';
+            cambios.forEach(cambio => {
+                mensaje += `• ${cambio.nombre}: ${cambio.estado}\n`;
+            });
+            mensaje += '\n¿Deseas continuar?';
+            
+            if (confirm(mensaje)) {
+                this.submit();
+            }
+        } else {
+            alert('No has realizado cambios en tus preferencias.');
+        }
+    });
+    
+    // Actualizar alertas dinámicamente
+    const switches = document.querySelectorAll('.custom-control-input');
+    switches.forEach(switchInput => {
+        switchInput.addEventListener('change', function() {
+            const alerta = this.closest('.notification-channel').querySelector('.alert');
+            const nombre = this.name.replace('preferencias_', '');
+            
+            if (this.checked) {
+                if (nombre === 'email') {
+                    alerta.className = 'alert alert-success alert-sm';
+                    alerta.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Las notificaciones por correo están activadas';
+                } else if (nombre === 'sms' || nombre === 'whatsapp') {
+                    const telefono = '{{ cliente.telefono }}';
+                    if (telefono) {
+                        alerta.className = 'alert alert-success alert-sm';
+                        alerta.innerHTML = `<i class="fas fa-check-circle mr-2"></i>Las notificaciones por ${nombre} están activadas para: <strong>${telefono}</strong>`;
+                    } else {
+                        alerta.className = 'alert alert-warning alert-sm';
+                        alerta.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i>Las notificaciones por ${nombre} están activadas, pero necesitas agregar un número de teléfono en tu perfil.`;
+                    }
+                } else if (nombre === 'push') {
+                    alerta.className = 'alert alert-success alert-sm';
+                    alerta.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Las notificaciones push están activadas';
+                }
+            } else {
+                alerta.className = 'alert alert-light alert-sm';
+                if (nombre === 'email') {
+                    alerta.innerHTML = '<i class="fas fa-info-circle mr-2"></i>Las notificaciones por correo están desactivadas';
+                } else if (nombre === 'sms' || nombre === 'whatsapp') {
+                    alerta.innerHTML = `<i class="fas fa-info-circle mr-2"></i>Las notificaciones por ${nombre} están desactivadas`;
+                } else if (nombre === 'push') {
+                    alerta.innerHTML = '<i class="fas fa-info-circle mr-2"></i>Las notificaciones push están desactivadas';
+                }
+            }
+        });
+    });
+});
+
+function restablecerPreferencias() {
+    if (confirm('¿Estás seguro de que deseas restablecer las preferencias a sus valores predeterminados?')) {
+        // Restablecer valores por defecto
+        document.getElementById('preferencias_email').checked = true;
+        document.getElementById('preferencias_sms').checked = true;
+        document.getElementById('preferencias_whatsapp').checked = false;
+        document.getElementById('preferencias_push').checked = false;
+        
+        // Actualizar alertas
+        const event = new Event('change');
+        document.getElementById('preferencias_email').dispatchEvent(event);
+        document.getElementById('preferencias_sms').dispatchEvent(event);
+        document.getElementById('preferencias_whatsapp').dispatchEvent(event);
+        document.getElementById('preferencias_push').dispatchEvent(event);
+        
+        alert('Las preferencias han sido restablecidas a sus valores predeterminados.');
+    }
+}
+</script>
+{% endblock %}

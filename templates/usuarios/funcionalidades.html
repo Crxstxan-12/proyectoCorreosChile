@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Funcionalidades · CorreosChile{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+<style>
+@media print{ .cc-topbar, .cc-mainnav, .cc-redbar, .btn { display:none !important } }
+.brand{font-weight:700;color:#e30613}
+.meta{color:#666}
+.section-title{font-weight:700;margin-top:1rem}
+.small{color:#666}
+</style>
+{% endblock %}
+{% block content %}
+<div class="container py-3">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div><span class="brand">CorreosChile</span> · Funcionalidades del Sistema</div>
+    <div class="meta">Fecha: {{ fecha }}</div>
+  </div>
+
+  <p class="small">Este documento resume las funcionalidades implementadas y cómo utilizarlas. Use el botón Imprimir para exportar a PDF.</p>
+
+  <div class="section">
+    <div class="section-title">Envíos</div>
+    <ul>
+      <li>Listado con filtros por código, estado, origen y destino.</li>
+      <li>Exportaciones: CSV, XLS y PDF corporativo con branding.</li>
+      <li>Escaneo y marcado de bultos entregados; actualización automática del estado del envío.</li>
+      <li>Asignación de transportista a envío desde el listado; visible en tabla y en PDF.</li>
+    </ul>
+    <div class="small">Vista y exportes: `envios/views.py`, plantilla PDF: `templates/envios/report.html`.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Seguimiento</div>
+    <ul>
+      <li>Registro de eventos con estado, ubicación, observación y geolocalización opcional.</li>
+      <li>Filtros por código de envío, ubicación/observación, estado y rango de fechas.</li>
+      <li>Mapa con puntos de eventos cuando hay lat/lng.</li>
+      <li>Exportaciones: CSV, XLS y PDF corporativo.</li>
+    </ul>
+    <div class="small">Vista y exportes: `seguimiento/views.py`, plantilla PDF: `templates/seguimiento/report.html`.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Reclamos</div>
+    <ul>
+      <li>Listado con filtros por número/texto, estado, tipo y fechas.</li>
+      <li>Detalle con cambio de estado y registro de respuesta.</li>
+      <li>Exportaciones: CSV, XLS y PDF corporativo.</li>
+    </ul>
+    <div class="small">Vistas: `reclamos/views.py`, detalle y PDF en `templates/reclamos/`.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Notificaciones</div>
+    <ul>
+      <li>Listado filtrable por texto, tipo, canal y estado de lectura.</li>
+      <li>Preferencias de canal por usuario (web, email, SMS, push).</li>
+      <li>Acción por fila para marcar leído/no leído.</li>
+      <li>Exportación PDF corporativa de notificaciones filtradas.</li>
+    </ul>
+    <div class="small">Vistas/URLs: `notificaciones/views.py`, `notificaciones/urls.py`, PDF en `templates/notificaciones/report.html`.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Transportistas</div>
+    <ul>
+      <li>CRUD completo: crear, editar, activar/inactivar.</li>
+      <li>Filtros por texto y estado en el listado.</li>
+      <li>Integrado con Envíos para asignación.</li>
+    </ul>
+    <div class="small">Vistas/URLs: `transportista/views.py`, `transportista/urls.py`.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Usuarios y Dashboard</div>
+    <ul>
+      <li>Login y logout con formulario estilizado.</li>
+      <li>Listado de perfiles y roles.</li>
+      <li>Dashboard con métricas de envíos, reclamos, notificaciones y transportistas.</li>
+    </ul>
+    <div class="small">Vistas/URLs: `usuarios/views.py`, `usuarios/urls.py`, plantilla `templates/dashboard.html`.</div>
+  </div>
+
+  <button class="btn btn-primary" onclick="window.print()">Imprimir</button>
+  <a class="btn btn-light" href="{% url 'usuarios:index' %}">Volver</a>
+  <div class="cc-redbar mt-3"></div>
+{% endblock %}

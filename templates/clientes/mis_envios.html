@@ -1,0 +1,300 @@
+{% extends 'clientes/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Mis Envíos - {{ block.super }}{% endblock %}
+
+{% block dashboard_content %}
+<!-- Encabezado -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1">
+                    <i class="fas fa-box mr-2 text-primary"></i>
+                    Mis Envíos
+                </h2>
+                <p class="text-muted mb-0">Gestiona y realiza seguimiento de todos tus envíos</p>
+            </div>
+            <div>
+                <a href="{% url 'clientes:descargar_reporte' %}" class="btn btn-outline-success">
+                    <i class="fas fa-download mr-2"></i>Descargar Reporte
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <form method="get" id="filterForm">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="estado" class="form-label">Estado</label>
+                            <select class="form-control" name="estado" id="estado">
+                                <option value="">Todos los estados</option>
+                                {% for estado_val, estado_label in estados_posibles %}
+                                    <option value="{{ estado_val }}" {% if filtros.estado == estado_val %}selected{% endif %}>
+                                        {{ estado_label|title }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="fecha_desde" class="form-label">Desde</label>
+                            <input type="date" class="form-control" name="fecha_desde" 
+                                   value="{{ filtros.fecha_desde }}" id="fecha_desde">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="fecha_hasta" class="form-label">Hasta</label>
+                            <input type="date" class="form-control" name="fecha_hasta" 
+                                   value="{{ filtros.fecha_hasta }}" id="fecha_hasta">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="busqueda" class="form-label">Búsqueda</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="busqueda" 
+                                       placeholder="Código, destinatario..." 
+                                       value="{{ filtros.busqueda }}" id="busqueda">
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-outline-secondary">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Listado de Envíos -->
+<div class="row">
+    <div class="col-12">
+        {% if envios %}
+            <div class="row">
+                {% for envio in envios %}
+                    <div class="col-lg-6 col-xl-4 mb-4">
+                        <div class="card envio-card h-100">
+                            <div class="card-header bg-transparent">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0 font-weight-bold text-primary">
+                                            {{ envio.codigo }}
+                                        </h6>
+                                        <small class="text-muted">
+                                            {{ envio.creado_en|date:"d/m/Y H:i" }}
+                                        </small>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="status-badge status-{{ envio.estado }}">
+                                            {{ envio.get_estado_display|title }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <div class="small text-muted mb-1">Destinatario</div>
+                                    <div class="font-weight-medium">{{ envio.destinatario_nombre }}</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="small text-muted mb-1">Destino</div>
+                                    <div>{{ envio.destino }}</div>
+                                </div>
+                                
+                                {% if envio.peso_kg %}
+                                    <div class="mb-3">
+                                        <div class="small text-muted mb-1">Peso</div>
+                                        <div>{{ envio.peso_kg }} kg</div>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if envio.costo %}
+                                    <div class="mb-3">
+                                        <div class="small text-muted mb-1">Costo</div>
+                                        <div class="font-weight-bold text-success">${{ envio.costo }}</div>
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Barra de progreso del estado -->
+                                <div class="mb-3">
+                                    <div class="progress" style="height: 6px;">
+                                        {% if envio.estado == 'pendiente' %}
+                                            <div class="progress-bar bg-warning" style="width: 20%"></div>
+                                        {% elif envio.estado == 'en_transito' %}
+                                            <div class="progress-bar bg-info" style="width: 50%"></div>
+                                        {% elif envio.estado == 'en_reparto' %}
+                                            <div class="progress-bar bg-primary" style="width: 80%"></div>
+                                        {% elif envio.estado == 'entregado' %}
+                                            <div class="progress-bar bg-success" style="width: 100%"></div>
+                                        {% else %}
+                                            <div class="progress-bar bg-secondary" style="width: 100%"></div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex justify-content-between mt-1 small text-muted">
+                                        <span>Origen</span>
+                                        <span>Destino</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <div class="d-flex justify-content-between">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                            onclick="copiarCodigo('{{ envio.codigo }}')">
+                                        <i class="fas fa-copy mr-1"></i>Copiar
+                                    </button>
+                                    <a href="{% url 'clientes:detalle_envio' envio.codigo %}" 
+                                       class="btn btn-sm btn-primary">
+                                        <i class="fas fa-search mr-1"></i>Ver Detalle
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Paginación (si es necesario) -->
+            {% if envios.has_other_pages %}
+                <nav aria-label="Navegación de páginas">
+                    <ul class="pagination justify-content-center">
+                        {% if envios.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ envios.previous_page_number }}{% for key, value in filtros.items %}&{{ key }}={{ value }}{% endfor %}">Anterior</a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in envios.paginator.page_range %}
+                            {% if envios.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > envios.number|add:'-3' and num < envios.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% for key, value in filtros.items %}&{{ key }}={{ value }}{% endfor %}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if envios.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ envios.next_page_number }}{% for key, value in filtros.items %}&{{ key }}={{ value }}{% endfor %}">Siguiente</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <!-- Mensaje cuando no hay envíos -->
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <div class="mb-4">
+                            <i class="fas fa-box fa-4x text-muted mb-3"></i>
+                            <h4 class="text-muted">No tienes envíos registrados</h4>
+                            <p class="text-muted">Cuando realices envíos, aparecerán aquí.</p>
+                        </div>
+                        <div class="row justify-content-center">
+                            <div class="col-auto">
+                                <a href="{% url 'envios:index' %}" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-plus mr-2"></i>Crear Primer Envío
+                                </a>
+                            </div>
+                            <div class="col-auto">
+                                <button type="button" class="btn btn-outline-secondary btn-lg" data-toggle="modal" data-target="#modalAyuda">
+                                    <i class="fas fa-question-circle mr-2"></i>¿Cómo funciona?
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal de Ayuda -->
+<div class="modal fade" id="modalAyuda" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-question-circle mr-2"></i>
+                    ¿Cómo funciona el seguimiento de envíos?
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-search mr-2 text-primary"></i>Buscar tu envío</h6>
+                        <p class="small">Puedes buscar por código de envío, nombre del destinatario o dirección de destino.</p>
+                        
+                        <h6 class="mt-4"><i class="fas fa-filter mr-2 text-info"></i>Filtrar resultados</h6>
+                        <p class="small">Usa los filtros para ver solo envíos en un estado específico o en un rango de fechas.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-truck mr-2 text-warning"></i>Estados del envío</h6>
+                        <ul class="small">
+                            <li><strong>Pendiente:</strong> Envío registrado, pendiente de salida</li>
+                            <li><strong>En tránsito:</strong> En camino al destino</li>
+                            <li><strong>En reparto:</strong> En proceso de entrega</li>
+                            <li><strong>Entregado:</strong> Entrega completada exitosamente</li>
+                        </ul>
+                        
+                        <h6 class="mt-4"><i class="fas fa-bell mr-2 text-success"></i>Notificaciones</h6>
+                        <p class="small">Recibirás notificaciones automáticas cuando cambie el estado de tus envíos.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+// Funciones adicionales para la página de envíos
+document.addEventListener('DOMContentLoaded', function() {
+    // Función para copiar código (heredada del dashboard base)
+    window.copiarCodigo = function(codigo) {
+        navigator.clipboard.writeText(codigo).then(function() {
+            // Mostrar mensaje de éxito
+            const toast = document.createElement('div');
+            toast.className = 'position-fixed top-0 end-0 p-3';
+            toast.style.zIndex = '1050';
+            toast.innerHTML = `
+                <div class="toast show" role="alert">
+                    <div class="toast-header">
+                        <strong class="mr-auto">Código Copiado</strong>
+                        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="toast-body">
+                        El código ${codigo} ha sido copiado al portapapeles.
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        });
+    };
+});
+</script>
+{% endblock %}

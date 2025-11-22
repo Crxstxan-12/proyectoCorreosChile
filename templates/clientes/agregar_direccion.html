@@ -1,0 +1,294 @@
+{% extends 'clientes/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Agregar Dirección - {{ block.super }}{% endblock %}
+
+{% block dashboard_content %}
+<!-- Encabezado -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1">
+                    <i class="fas fa-map-marker-alt mr-2 text-primary"></i>
+                    Agregar Nueva Dirección
+                </h2>
+                <p class="text-muted mb-0">Guarda una dirección de entrega para futuros envíos</p>
+            </div>
+            <div>
+                <a href="{% url 'clientes:perfil_cliente' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left mr-2"></i>Volver al Perfil
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Formulario de dirección -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">
+                    <i class="fas fa-edit mr-2 text-primary"></i>
+                    Información de la Dirección
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" id="direccionForm">
+                    {% csrf_token %}
+                    
+                    <!-- Nombre de la dirección -->
+                    <div class="form-group">
+                        <label for="nombre">Nombre de la Dirección *</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" 
+                               placeholder="Ej: Casa, Oficina, Casa de mis padres" required>
+                        <small class="form-text text-muted">
+                            Asigna un nombre fácil de recordar para esta dirección
+                        </small>
+                    </div>
+                    
+                    <!-- Dirección completa -->
+                    <div class="form-group">
+                        <label for="direccion">Dirección Completa *</label>
+                        <textarea class="form-control" id="direccion" name="direccion" rows="3" 
+                                  placeholder="Calle, número, departamento, etc." required></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="ciudad">Ciudad *</label>
+                                <input type="text" class="form-control" id="ciudad" name="ciudad" 
+                                       placeholder="Nombre de la ciudad" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="codigo_postal">Código Postal *</label>
+                                <input type="text" class="form-control" id="codigo_postal" name="codigo_postal" 
+                                       placeholder="0000000" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Teléfono de contacto -->
+                    <div class="form-group">
+                        <label for="telefono_contacto">Teléfono de Contacto</label>
+                        <input type="tel" class="form-control" id="telefono_contacto" name="telefono_contacto" 
+                               placeholder="Teléfono para contacto en esta dirección">
+                        <small class="form-text text-muted">
+                            Opcional: número de contacto específico para esta dirección
+                        </small>
+                    </div>
+                    
+                    <!-- Instrucciones especiales -->
+                    <div class="form-group">
+                        <label for="instrucciones">Instrucciones de Entrega</label>
+                        <textarea class="form-control" id="instrucciones" name="instrucciones" rows="3" 
+                                  placeholder="Ej: Timbre no funciona, llamar al celular. Dejar con el conserje."></textarea>
+                        <small class="form-text text-muted">
+                            Cualquier información que ayude al repartidor a entregar el paquete
+                        </small>
+                    </div>
+                    
+                    <!-- Dirección principal -->
+                    <div class="custom-control custom-checkbox mb-4">
+                        <input type="checkbox" class="custom-control-input" id="es_principal" name="es_principal">
+                        <label class="custom-control-label" for="es_principal">
+                            <strong>Marcar como dirección principal</strong><br>
+                            <small class="text-muted">Esta será la dirección predeterminada para tus envíos</small>
+                        </label>
+                    </div>
+                    
+                    <!-- Botones de acción -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'clientes:perfil_cliente' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times mr-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save mr-2"></i>Guardar Dirección
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Columna derecha con consejos -->
+    <div class="col-lg-4">
+        <!-- Consejos para una buena dirección -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb mr-2 text-warning"></i>
+                    Consejos Útiles
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="tip-item mb-3">
+                    <h6 class="text-primary mb-2">
+                        <i class="fas fa-map-marker-alt mr-2"></i>
+                        Dirección Completa
+                    </h6>
+                    <p class="small text-muted mb-0">
+                        Incluye calle, número, departamento o oficina. Si es casa, puedes agregar color o características distintivas.
+                    </p>
+                </div>
+                
+                <div class="tip-item mb-3">
+                    <h6 class="text-success mb-2">
+                        <i class="fas fa-phone mr-2"></i>
+                        Teléfono de Contacto
+                    </h6>
+                    <p class="small text-muted mb-0">
+                        Agrega un número donde puedan contactarte si hay problemas con la entrega.
+                    </p>
+                </div>
+                
+                <div class="tip-item mb-3">
+                    <h6 class="text-info mb-2">
+                        <i class="fas fa-comment-alt mr-2"></i>
+                        Instrucciones Claras
+                    </h6>
+                    <p class="small text-muted mb-0">
+                        Indica si hay algo especial: timbre roto, perro guardian, dejar con el conserje, etc.
+                    </p>
+                </div>
+                
+                <div class="tip-item">
+                    <h6 class="text-warning mb-2">
+                        <i class="fas fa-clock mr-2"></i>
+                        Horarios de Entrega
+                    </h6>
+                    <p class="small text-muted mb-0">
+                        Si hay horarios específicos para entregar, indícalo en las instrucciones.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ejemplos de nombres -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0">
+                    <i class="fas fa-tags mr-2 text-secondary"></i>
+                    Ejemplos de Nombres
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="example-item mb-2">
+                    <strong>Casa:</strong>
+                    <ul class="small text-muted mb-0">
+                        <li>Mi Casa</li>
+                        <li>Casa Familiar</li>
+                        <li>Casa - Calle Principal</li>
+                    </ul>
+                </div>
+                
+                <div class="example-item mb-2">
+                    <strong>Trabajo:</strong>
+                    <ul class="small text-muted mb-0">
+                        <li>Oficina Principal</li>
+                        <li>Trabajo - Santiago</li>
+                        <li>Consultorio</li>
+                    </ul>
+                </div>
+                
+                <div class="example-item">
+                    <strong>Familiares:</strong>
+                    <ul class="small text-muted mb-0">
+                        <li>Casa de Mamá</li>
+                        <li>Casa de mis Padres</li>
+                        <li>Departamento de mi Hermano</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+// Validación del formulario
+document.addEventListener('DOMContentLoaded', function() {
+    const direccionForm = document.getElementById('direccionForm');
+    
+    direccionForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validar campos requeridos
+        const requiredFields = direccionForm.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(function(field) {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        // Validar código postal (solo números)
+        const codigoPostal = document.getElementById('codigo_postal');
+        if (codigoPostal.value && !/^\d{7}$/.test(codigoPostal.value)) {
+            codigoPostal.classList.add('is-invalid');
+            isValid = false;
+        }
+        
+        // Validar teléfono (opcional, pero si se ingresa debe ser válido)
+        const telefono = document.getElementById('telefono_contacto');
+        if (telefono.value && !/^\+?\d{9,15}$/.test(telefono.value)) {
+            telefono.classList.add('is-invalid');
+            isValid = false;
+        }
+        
+        if (isValid) {
+            // Mostrar confirmación
+            if (confirm('¿Estás seguro de que deseas guardar esta dirección?')) {
+                direccionForm.submit();
+            }
+        }
+    });
+    
+    // Remover clase de error al escribir
+    const inputs = direccionForm.querySelectorAll('input, textarea');
+    inputs.forEach(function(input) {
+        input.addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+        });
+    });
+    
+    // Auto-formato del código postal
+    document.getElementById('codigo_postal').addEventListener('input', function(e) {
+        this.value = this.value.replace(/\D/g, ''); // Solo números
+    });
+    
+    // Auto-formato del teléfono
+    document.getElementById('telefono_contacto').addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^+\d]/g, ''); // Solo números y +
+    });
+});
+
+// Función para obtener ubicación actual (opcional)
+function obtenerUbicacionActual() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            // Aquí podrías usar la API de geocodificación inversa para obtener la dirección
+            console.log('Latitud:', position.coords.latitude);
+            console.log('Longitud:', position.coords.longitude);
+            
+            // Mostrar mensaje al usuario
+            alert('Ubicación obtenida. Esta función puede ayudarte a completar automáticamente algunos campos.');
+        }, function(error) {
+            alert('No se pudo obtener tu ubicación. Por favor, completa la dirección manualmente.');
+        });
+    } else {
+        alert('Tu navegador no soporta geolocalización.');
+    }
+}
+</script>
+{% endblock %}

@@ -3,17 +3,29 @@
 .envios-bg{background:none}
 html, body{height:100%}
 body{background:linear-gradient(135deg,#0b6fdc 0%, #6be1c3 100%)}
-.envios-bg .card{background:#fff;box-shadow:0 0.5rem 1rem rgba(0,0,0,.06);border:1px solid #eee}
+.envios-bg .card{
+    background:#fff;
+    box-shadow:0 0.5rem 1rem rgba(0,0,0,.06);
+    border:1px solid #eee
+}
 .toolbar .input-group{width:360px}
 .toolbar .form-control{border-color:#dee2e6}
 .toolbar .input-group-text{background-color:#fff;color:#6c757d}
 .table thead th{background-color:#fafafa;font-weight:600}
-.card-header{background:#ffffffd9;font-weight:600;border-bottom:1px solid #e6e6e6}
+.card-header{
+    background:#ffffffd9;
+    font-weight:600;
+    border-bottom:1px solid #e6e6e6
+}
 .estado-pendiente{background-color:#fff7e6;color:#d48b00}
 .estado-transito{background-color:#e6f4ff;color:#0b6fdc}
 .estado-entregado{background-color:#eaf7ee;color:#2e7d32}
 .estado-devuelto{background-color:#eef0f3;color:#6b7280}
 .estado-cancelado{background-color:#fdecea;color:#b00020}
 .pagination .page-link{color:#0b6fdc}
-.pagination .page-item.active .page-link{background-color:#0b6fdc;border-color:#0b6fdc;color:#fff}
+.pagination .page-item.active .page-link{
+    background-color:#0b6fdc;
+    border-color:#0b6fdc;
+    color:#fff
+}
 .pagination .page-link:hover{color:#084e9b}

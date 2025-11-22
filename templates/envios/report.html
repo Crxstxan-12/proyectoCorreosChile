@@ -15,7 +15,7 @@
     <div><span class="brand">CorreosChile</span> · Reporte de Envíos</div>
     <div class="meta">Fecha: {{ fecha }}</div>
   </div>
-  <div class="mb-2 meta">Filtros: Código/Texto="{{ q|default:'-' }}" · Estado="{{ estado|default:'-' }}" · Origen="{{ origen|default:'-' }}" · Destino="{{ destino|default:'-' }}"</div>
+  <div class="mb-2 meta">Filtros: Código/Texto="{{ q|default:'-' }}" · Estado="{{ estado|default:'-' }}" · Origen="{{ origen|default:'-' }}" · Destino="{{ destino|default:'-' }}" · Transportista="{{ transportista_nombre|default:'-' }}"</div>
   <div class="table-responsive">
     <table class="table table-striped">
       <thead>
@@ -25,6 +25,7 @@
           <th>Origen</th>
           <th>Destino</th>
           <th>Destinatario</th>
+          <th>Transportista</th>
           <th>Bultos</th>
           <th>Peso (kg)</th>
           <th>Costo</th>
@@ -39,6 +40,7 @@
           <td>{{ e.origen }}</td>
           <td>{{ e.destino }}</td>
           <td>{{ e.destinatario_nombre }}</td>
+          <td>{{ e.transportista|default:"-" }}</td>
           <td>{{ e.bultos.count }}</td>
           <td>{{ e.peso_kg|default:"-" }}</td>
           <td>{{ e.costo|default:"-" }}</td>

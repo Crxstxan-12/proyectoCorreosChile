@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Seguimiento de Paquetes - CorreosChile{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">Seguimiento de Paquetes</h1>
+            <p class="text-gray-600">Ingresa tu código de tracking para conocer el estado de tu envío</p>
+        </div>
+
+        <!-- Formulario de búsqueda -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <form method="get" class="flex flex-col sm:flex-row gap-4">
+                <div class="flex-1">
+                    <label for="codigo_tracking" class="block text-sm font-medium text-gray-700 mb-2">
+                        Código de Tracking
+                    </label>
+                    <input 
+                        type="text" 
+                        id="codigo_tracking" 
+                        name="codigo_tracking" 
+                        value="{{ codigo_seguimiento|default:'' }}"
+                        placeholder="Ej: CC20241121001"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                    >
+                </div>
+                <div class="flex items-end">
+                    <button 
+                        type="submit" 
+                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    >
+                        Buscar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        {% if error %}
+            <!-- Mensaje de error -->
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-8">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                    {{ error }}
+                </div>
+            </div>
+        {% elif paquete %}
+            <!-- Información del paquete -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">Información del Envío</h2>
+                        <p class="text-gray-600">Código: <span class="font-mono font-bold">{{ paquete.codigo_seguimiento }}</span></p>
+                    </div>
+                    <div class="mt-4 sm:mt-0">
+                        <span class="px-4 py-2 rounded-full text-sm font-medium
+                            {% if paquete.estado == 'registrado' %}bg-blue-100 text-blue-800
+                            {% elif paquete.estado == 'en_almacen' %}bg-yellow-100 text-yellow-800
+                            {% elif paquete.estado == 'en_transito' %}bg-orange-100 text-orange-800
+                            {% elif paquete.estado == 'en_reparto' %}bg-purple-100 text-purple-800
+                            {% elif paquete.estado == 'listo_para_retiro' %}bg-indigo-100 text-indigo-800
+                            {% elif paquete.estado == 'entregado' %}bg-green-100 text-green-800
+                            {% elif paquete.estado == 'devuelto' %}bg-red-100 text-red-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ estado_actual }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Información del remitente -->
+                    <div class="border rounded-lg p-4">
+                        <h3 class="font-semibold text-gray-800 mb-3">Información del Remitente</h3>
+                        <div class="space-y-2 text-sm">
+                            <p><span class="font-medium">Nombre:</span> {{ paquete.remitente.nombre_completo }}</p>
+                            <p><span class="font-medium">Documento:</span> {{ paquete.remitente.numero_documento }}</p>
+                            <p><span class="font-medium">Email:</span> {{ paquete.remitente.email }}</p>
+                            <p><span class="font-medium">Teléfono:</span> {{ paquete.remitente.telefono }}</p>
+                            <p><span class="font-medium">Dirección:</span> {{ paquete.remitente.direccion }}, {{ paquete.remitente.comuna }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Información del destinatario -->
+                    <div class="border rounded-lg p-4">
+                        <h3 class="font-semibold text-gray-800 mb-3">Información del Destinatario</h3>
+                        <div class="space-y-2 text-sm">
+                            <p><span class="font-medium">Nombre:</span> {{ paquete.destinatario.nombre_completo }}</p>
+                            <p><span class="font-medium">Email:</span> {{ paquete.destinatario.email }}</p>
+                            <p><span class="font-medium">Teléfono:</span> {{ paquete.destinatario.telefono }}</p>
+                            <p><span class="font-medium">Dirección:</span> {{ paquete.destinatario.direccion }}, {{ paquete.destinatario.comuna }}</p>
+                            {% if paquete.destinatario.horario_preferido %}
+                            <p><span class="font-medium">Horario preferido:</span> {{ paquete.destinatario.horario_preferido }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detalles del paquete -->
+                <div class="mt-6 border rounded-lg p-4">
+                    <h3 class="font-semibold text-gray-800 mb-3">Detalles del Paquete</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                            <p class="font-medium text-gray-600">Tipo</p>
+                            <p>{{ paquete.tipo_paquete.nombre }}</p>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-600">Peso</p>
+                            <p>{{ paquete.peso_kg }} kg</p>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-600">Dimensiones</p>
+                            <p>{{ paquete.largo_cm }}×{{ paquete.ancho_cm }}×{{ paquete.alto_cm }} cm</p>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-600">Valor</p>
+                            <p>${{ paquete.valor_declarado|floatformat:0 }}</p>
+                        </div>
+                    </div>
+                    {% if paquete.descripcion_contenido %}
+                    <div class="mt-4">
+                        <p class="font-medium text-gray-600">Descripción del contenido</p>
+                        <p class="text-sm">{{ paquete.descripcion_contenido }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Historial de estados -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Historial de Estados</h2>
+                <div class="relative">
+                    <!-- Línea de tiempo -->
+                    <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                    
+                    {% for item in historial %}
+                    <div class="relative flex items-start mb-6 last:mb-0">
+                        <!-- Punto de la línea de tiempo -->
+                        <div class="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center relative z-10">
+                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        
+                        <!-- Contenido -->
+                        <div class="ml-4 flex-1">
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="font-semibold text-gray-800">
+                                        {% if item.estado_nuevo == 'registrado' %}Paquete registrado
+                                        {% elif item.estado_nuevo == 'en_almacen' %}En almacén
+                                        {% elif item.estado_nuevo == 'en_transito' %}En tránsito
+                                        {% elif item.estado_nuevo == 'en_reparto' %}En reparto
+                                        {% elif item.estado_nuevo == 'listo_para_retiro' %}Listo para retiro
+                                        {% elif item.estado_nuevo == 'entregado' %}Entregado
+                                        {% elif item.estado_nuevo == 'devuelto' %}Devuelto
+                                        {% else %}Estado actualizado{% endif %}
+                                    </h3>
+                                    <span class="text-sm text-gray-500">{{ item.fecha_hora|date:"d/m/Y H:i" }}</span>
+                                </div>
+                                {% if item.ubicacion %}
+                                <p class="text-sm text-gray-600 mb-1">
+                                    <span class="font-medium">Ubicación:</span> {{ item.ubicacion }}
+                                </p>
+                                {% endif %}
+                                {% if item.observaciones %}
+                                <p class="text-sm text-gray-600">
+                                    {{ item.observaciones }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Ruta del paquete -->
+            {% if ruta %}
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Ruta de Entrega</h2>
+                <div class="space-y-4">
+                    {% for punto in ruta %}
+                    <div class="flex items-center p-4 border rounded-lg {% if punto.completado %}bg-green-50 border-green-200{% else %}bg-gray-50{% endif %}">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center {% if punto.completado %}bg-green-600 text-white{% else %}bg-gray-300 text-gray-600{% endif %}">
+                            {{ punto.orden }}
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <h3 class="font-semibold text-gray-800">{{ punto.punto_entrega.nombre }}</h3>
+                            <p class="text-sm text-gray-600">{{ punto.punto_entrega.direccion }}, {{ punto.punto_entrega.ciudad }}</p>
+                            <p class="text-xs text-gray-500">
+                                {% if punto.completado %}
+                                    Completado: {{ punto.fecha_hora_real|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    Estimado: {{ punto.fecha_hora_estimada|date:"d/m/Y H:i" }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="ml-4">
+                            {% if punto.completado %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                                Completado
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                                </svg>
+                                Pendiente
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-focus en el campo de búsqueda
+    const inputTracking = document.getElementById('codigo_tracking');
+    if (inputTracking && !inputTracking.value) {
+        inputTracking.focus();
+    }
+});
+</script>
+{% endblock %}

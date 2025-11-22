@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Configurar Plataformas E-commerce - CorreosChile{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Configurar Plataformas E-commerce</h1>
+        <a href="{% url 'ecommerce:index' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a Pedidos
+        </a>
+    </div>
+
+    <!-- Formulario de nueva plataforma -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Agregar Nueva Plataforma</h5>
+        </div>
+        <div class="card-body">
+            <form id="formPlataforma">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="nombre" class="form-label">Nombre de la Tienda</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="tipo" class="form-label">Plataforma</label>
+                        <select class="form-select" id="tipo" name="tipo" required>
+                            <option value="">Seleccione...</option>
+                            {% for valor, texto in tipos_disponibles %}
+                            <option value="{{ valor }}">{{ texto }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="store_url" class="form-label">URL de la Tienda</label>
+                        <input type="url" class="form-control" id="store_url" name="store_url" placeholder="https://mitienda.myshopify.com" required>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <label for="api_key" class="form-label">API Key</label>
+                        <input type="password" class="form-control" id="api_key" name="api_key" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="api_secret" class="form-label">API Secret</label>
+                        <input type="password" class="form-control" id="api_secret" name="api_secret">
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <label for="webhook_secret" class="form-label">Webhook Secret</label>
+                        <input type="password" class="form-control" id="webhook_secret" name="webhook_secret">
+                        <div class="form-text">Opcional pero recomendado para mayor seguridad</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="esta_activa" class="form-label">Estado</label>
+                        <select class="form-select" id="esta_activa" name="esta_activa">
+                            <option value="true">Activa</option>
+                            <option value="false">Inactiva</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Guardar Plataforma
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Plataformas existentes -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Plataformas Configuradas</h5>
+        </div>
+        <div class="card-body">
+            {% if plataformas %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>URL</th>
+                            <th>Estado</th>
+                            <th>Creado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for plataforma in plataformas %}
+                        <tr>
+                            <td>
+                                <strong>{{ plataforma.nombre }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ plataforma.get_tipo_display }}</span>
+                            </td>
+                            <td>
+                                <a href="{{ plataforma.store_url }}" target="_blank" class="text-decoration-none">
+                                    {{ plataforma.store_url }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if plataforma.esta_activa %}
+                                    <span class="badge bg-success">Activa</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactiva</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ plataforma.creado_en|date:"d/m/Y" }}</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="editarPlataforma({{ plataforma.id }})">
+                                        <i class="fas fa-edit"></i> Editar
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-info" onclick="verWebhookUrl({{ plataforma.id }})">
+                                        <i class="fas fa-link"></i> Webhook
+                                    </button>
+                                    {% if plataforma.tipo == 'shopify' %}
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="configurarShopify({{ plataforma.id }})">
+                                        <i class="fas fa-cog"></i> Configurar
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-store fa-3x mb-3"></i>
+                <p>No tienes plataformas configuradas aún.</p>
+                <p>Agrega tu primera plataforma usando el formulario de arriba.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal para mostrar URL de webhook -->
+<div class="modal fade" id="webhookModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Configuración de Webhook</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Copia esta URL en la configuración de webhooks de tu plataforma:</p>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="webhookUrl" readonly>
+                    <button class="btn btn-outline-secondary" type="button" onclick="copiarWebhookUrl()">
+                        <i class="fas fa-copy"></i> Copiar
+                    </button>
+                </div>
+                
+                <h6>Eventos necesarios:</h6>
+                <ul>
+                    <li><code>orders/create</code> - Nuevos pedidos</li>
+                    <li><code>orders/updated</code> - Pedidos actualizados</li>
+                    <li><code>orders/cancelled</code> - Pedidos cancelados</li>
+                </ul>
+                
+                <div class="alert alert-info">
+                    <strong>Importante:</strong> Asegúrate de configurar el secreto del webhook en la plataforma para mayor seguridad.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Función para guardar plataforma
+document.getElementById('formPlataforma').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = {};
+    formData.forEach((value, key) => {
+        if (key === 'esta_activa') {
+            data[key] = value === 'true';
+        } else {
+            data[key] = value;
+        }
+    });
+    
+    fetch('{% url "ecommerce:configurar" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            alert('Plataforma guardada exitosamente');
+            location.reload();
+        } else {
+            alert('Error: ' + (data.error || 'Error desconocido'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al guardar la plataforma');
+    });
+});
+
+// Función para mostrar URL de webhook
+function verWebhookUrl(plataformaId) {
+    const webhookUrl = `${window.location.origin}/ecommerce/webhook/shopify/${plataformaId}/`;
+    document.getElementById('webhookUrl').value = webhookUrl;
+    
+    const modal = new bootstrap.Modal(document.getElementById('webhookModal'));
+    modal.show();
+}
+
+// Función para copiar URL
+function copiarWebhookUrl() {
+    const webhookUrl = document.getElementById('webhookUrl');
+    webhookUrl.select();
+    webhookUrl.setSelectionRange(0, 99999); // Para dispositivos móviles
+    
+    try {
+        document.execCommand('copy');
+        alert('URL copiada al portapapeles');
+    } catch (err) {
+        console.error('Error al copiar:', err);
+    }
+}
+
+// Función para configurar Shopify
+function configurarShopify(plataformaId) {
+    alert('Para configurar Shopify:\n\n1. Ve a tu panel de Shopify\n2. Configuración > Notificaciones\n3. Agrega la URL del webhook\n4. Configura el secreto del webhook\n\nLa documentación completa está disponible en el panel de administración.');
+}
+</script>
+{% endblock %}

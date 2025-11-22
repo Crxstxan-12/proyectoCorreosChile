@@ -7,7 +7,10 @@ from .models import EventoSeguimiento
 from envios.models import Envio
 import json
 from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+from usuarios.models import Perfil
 
+@login_required
 def index(request):
     saved_event = False
     saved_event_error = ''
@@ -19,6 +22,9 @@ def index(request):
         lat = request.POST.get('lat')
         lng = request.POST.get('lng')
         try:
+            permitido = Perfil.objects.filter(user=request.user, rol__in=['administrador','editor']).exists()
+            if not permitido:
+                raise ValueError('Sin permisos')
             envio = Envio.objects.get(codigo=envio_codigo)
             estados_validos = [e[0] for e in EventoSeguimiento.ESTADOS]
             if estado not in estados_validos:
@@ -114,6 +120,7 @@ def index(request):
     }
     return render(request, 'seguimiento/index.html', ctx)
 
+@login_required
 def reporte_pdf(request):
     q = request.GET.get('q', '').strip()
     estado = request.GET.get('estado', '').strip()

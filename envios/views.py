@@ -7,12 +7,33 @@ from django.utils import timezone
 from .models import Envio, Bulto
 from seguimiento.models import EventoSeguimiento
 from django.urls import reverse
+from transportista.models import Transportista
+from django.contrib.auth.decorators import login_required
+from usuarios.models import Perfil
 
+@login_required
 def index(request):
+    assigned = False
+    assigned_error = ''
+    if request.method == 'POST' and request.POST.get('action') == 'assign_transportista':
+        envio_codigo = (request.POST.get('envio_codigo') or '').strip()
+        transportista_id = request.POST.get('transportista_id')
+        try:
+            permitido = Perfil.objects.filter(user=request.user, rol__in=['administrador','editor']).exists()
+            if not permitido:
+                raise Exception('Sin permisos')
+            envio = Envio.objects.get(codigo=envio_codigo)
+            t = Transportista.objects.get(id=int(transportista_id), activo=True)
+            envio.transportista = t
+            envio.save()
+            assigned = True
+        except Exception:
+            assigned_error = 'Error al asignar transportista'
     q = request.GET.get('q', '').strip()
     estado = request.GET.get('estado', '').strip()
     origen = request.GET.get('origen', '').strip()
     destino = request.GET.get('destino', '').strip()
+    transportista_id = request.GET.get('transportista_id', '').strip()
 
     queryset = Envio.objects.all()
     if q:
@@ -27,6 +48,8 @@ def index(request):
         queryset = queryset.filter(origen__icontains=origen)
     if destino:
         queryset = queryset.filter(destino__icontains=destino)
+    if transportista_id:
+        queryset = queryset.filter(transportista_id=transportista_id)
 
     queryset = queryset.order_by('-creado_en')
 
@@ -69,15 +92,20 @@ def index(request):
         'estado': estado,
         'origen': origen,
         'destino': destino,
+        'transportista_id': transportista_id,
         'total_envios': Envio.objects.count(),
         'envios_pendientes': counts.get('pendiente', 0),
         'envios_transito': counts.get('en_transito', 0),
         'envios_entregados': counts.get('entregado', 0),
         'envios_devueltos': counts.get('devuelto', 0),
         'envios_cancelados': counts.get('cancelado', 0),
+        'transportistas': Transportista.objects.filter(activo=True).order_by('nombre'),
+        'assigned': assigned,
+        'assigned_error': assigned_error,
     }
     return render(request, 'envios/index.html', ctx)
 
+@login_required
 def scan_bultos(request):
     if request.method != 'POST':
         return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
@@ -106,6 +134,9 @@ def scan_bultos(request):
     if not codigos:
         return JsonResponse({'ok': False, 'error': 'Sin códigos'}, status=400)
     try:
+        permitido = Perfil.objects.filter(user=request.user, rol__in=['administrador','editor']).exists()
+        if not permitido:
+            return JsonResponse({'ok': False, 'error': 'Sin permisos'}, status=403)
         envio = Envio.objects.get(codigo=envio_codigo)
     except Envio.DoesNotExist:
         return JsonResponse({'ok': False, 'error': 'Envío no encontrado'}, status=404)
@@ -138,11 +169,13 @@ def scan_bultos(request):
         'estado_envio': envio.estado,
     })
 
+@login_required
 def reporte_pdf(request):
     q = request.GET.get('q', '').strip()
     estado = request.GET.get('estado', '').strip()
     origen = request.GET.get('origen', '').strip()
     destino = request.GET.get('destino', '').strip()
+    transportista_id = request.GET.get('transportista_id', '').strip()
     queryset = Envio.objects.all()
     if q:
         queryset = queryset.filter(
@@ -156,13 +189,24 @@ def reporte_pdf(request):
         queryset = queryset.filter(origen__icontains=origen)
     if destino:
         queryset = queryset.filter(destino__icontains=destino)
+    if transportista_id:
+        queryset = queryset.filter(transportista_id=transportista_id)
     queryset = queryset.order_by('-creado_en')
+    tp_nombre = '-'
+    if transportista_id:
+        try:
+            tp = Transportista.objects.get(id=int(transportista_id))
+            tp_nombre = tp.nombre
+        except Exception:
+            tp_nombre = '-'
     ctx = {
         'envios': queryset,
         'q': q,
         'estado': estado,
         'origen': origen,
         'destino': destino,
+        'transportista_id': transportista_id,
+        'transportista_nombre': tp_nombre,
         'fecha': timezone.now(),
     }
     return render(request, 'envios/report.html', ctx)

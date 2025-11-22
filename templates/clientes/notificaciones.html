@@ -1,0 +1,366 @@
+{% extends 'clientes/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Notificaciones - {{ block.super }}{% endblock %}
+
+{% block dashboard_content %}
+<!-- Encabezado -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1">
+                    <i class="fas fa-bell mr-2 text-warning"></i>
+                    Centro de Notificaciones
+                </h2>
+                <p class="text-muted mb-0">Gestiona y revisa todas tus notificaciones</p>
+            </div>
+            <div>
+                {% if no_leidas > 0 %}
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" name="marcar_todas_leidas" class="btn btn-outline-secondary">
+                            <i class="fas fa-check-double mr-2"></i>Marcar todas como leídas
+                        </button>
+                    </form>
+                {% endif %}
+                <a href="{% url 'clientes:preferencias_notificaciones' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-cog mr-2"></i>Configurar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumen de notificaciones -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <div class="h2 text-primary mb-2">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="h4 text-primary">{{ notificaciones|length }}</div>
+                <div class="small text-muted">Total Notificaciones</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <div class="h2 text-warning mb-2">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="h4 text-warning">{{ no_leidas }}</div>
+                <div class="small text-muted">No Leídas</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <div class="h2 text-success mb-2">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="h4 text-success">{{ notificaciones|length|add:no_leidas|add:"-" }}{{ notificaciones|length|add:no_leidas }}</div>
+                <div class="small text-muted">Leídas</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card text-center border-0 shadow-sm">
+            <div class="card-body">
+                <div class="h2 text-info mb-2">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+                <div class="h4 text-info">Hoy</div>
+                <div class="small text-muted">{{ notificaciones_hoy|length }} notificaciones</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de notificaciones -->
+<div class="row">
+    <div class="col-12">
+        {% if notificaciones %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h5 class="mb-0">Historial de Notificaciones</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-secondary active">Todas</button>
+                                <button type="button" class="btn btn-outline-secondary">No leídas</button>
+                                <button type="button" class="btn btn-outline-secondary">Leídas</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for notificacion in notificaciones %}
+                            <div class="list-group-item {% if not notificacion.leido %}bg-light border-left-3 border-left-warning{% endif %}">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        <!-- Icono según el canal -->
+                                        {% if notificacion.canal == 'email' %}
+                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-envelope"></i>
+                                            </div>
+                                        {% elif notificacion.canal == 'sms' %}
+                                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-sms"></i>
+                                            </div>
+                                        {% elif notificacion.canal == 'whatsapp' %}
+                                            <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="fab fa-whatsapp"></i>
+                                            </div>
+                                        {% else %}
+                                            <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-bell"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">{{ notificacion.tipo_notificacion|title }}</h6>
+                                            <small class="text-muted">
+                                                {% if notificacion.fecha_envio %}
+                                                    {{ notificacion.fecha_envio|timesince }} atrás
+                                                {% else %}
+                                                    Reciente
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                        <p class="mb-1">{{ notificacion.contenido }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="fas fa-tag mr-1"></i>
+                                                {{ notificacion.canal|upper }}
+                                            </small>
+                                            {% if not notificacion.leido %}
+                                                <span class="badge badge-warning">No leída</span>
+                                            {% else %}
+                                                <span class="badge badge-light">Leída</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <div class="btn-group-vertical btn-group-sm" role="group">
+                                            {% if not notificacion.leido %}
+                                                <form method="post" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="notificacion_id" value="{{ notificacion.id }}">
+                                                    <button type="submit" class="btn btn-outline-secondary btn-sm" title="Marcar como leída">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                            <button type="button" class="btn btn-outline-primary btn-sm" title="Ver detalle" data-toggle="modal" data-target="#modalDetalle{{ notificacion.id }}">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Modal de detalle -->
+                            <div class="modal fade" id="modalDetalle{{ notificacion.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">
+                                                <i class="fas fa-bell mr-2"></i>
+                                                Detalle de Notificación
+                                            </h5>
+                                            <button type="button" class="close" data-dismiss="modal">
+                                                <span>&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4">
+                                                    <strong>Tipo:</strong>
+                                                </div>
+                                                <div class="col-sm-8">
+                                                    {{ notificacion.tipo_notificacion|title }}
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4">
+                                                    <strong>Canal:</strong>
+                                                </div>
+                                                <div class="col-sm-8">
+                                                    <span class="badge badge-primary">{{ notificacion.canal|upper }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4">
+                                                    <strong>Contenido:</strong>
+                                                </div>
+                                                <div class="col-sm-8">
+                                                    {{ notificacion.contenido }}
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4">
+                                                    <strong>Enviado:</strong>
+                                                </div>
+                                                <div class="col-sm-8">
+                                                    {{ notificacion.fecha_envio|date:"d/m/Y H:i" }}
+                                                </div>
+                                            </div>
+                                            {% if notificacion.leido %}
+                                                <div class="row mb-3">
+                                                    <div class="col-sm-4">
+                                                        <strong>Leído:</strong>
+                                                    </div>
+                                                    <div class="col-sm-8">
+                                                        {{ notificacion.fecha_lectura|date:"d/m/Y H:i" }}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            {% if notificacion.estado_entrega %}
+                                                <div class="row mb-3">
+                                                    <div class="col-sm-4">
+                                                        <strong>Estado de entrega:</strong>
+                                                    </div>
+                                                    <div class="col-sm-8">
+                                                        {% if notificacion.estado_entrega == 'entregado' %}
+                                                            <span class="badge badge-success">Entregado</span>
+                                                        {% elif notificacion.estado_entrega == 'error' %}
+                                                            <span class="badge badge-danger">Error</span>
+                                                        {% else %}
+                                                            <span class="badge badge-warning">{{ notificacion.estado_entrega|title }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-bell-slash fa-4x text-muted mb-4"></i>
+                    <h4 class="text-muted mb-3">No tienes notificaciones</h4>
+                    <p class="text-muted mb-4">
+                        Cuando tengas notificaciones sobre tus envíos, aparecerán aquí.
+                    </p>
+                    <div class="row justify-content-center">
+                        <div class="col-auto">
+                            <a href="{% url 'clientes:preferencias_notificaciones' %}" class="btn btn-primary">
+                                <i class="fas fa-cog mr-2"></i>Configurar Notificaciones
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <a href="{% url 'clientes:dashboard_cliente' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left mr-2"></i>Volver al Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Configuración de notificaciones -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-4">
+                <h5 class="mb-3">¿Quieres personalizar tus notificaciones?</h5>
+                <p class="text-muted mb-4">
+                    Puedes elegir qué tipo de notificaciones recibir y por qué canales.
+                </p>
+                <a href="{% url 'clientes:preferencias_notificaciones' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-sliders-h mr-2"></i>Personalizar Notificaciones
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+// Funciones para el centro de notificaciones
+document.addEventListener('DOMContentLoaded', function() {
+    // Filtros de notificaciones
+    const filterButtons = document.querySelectorAll('.btn-group .btn');
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remover active de todos los botones
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            // Agregar active al botón clickeado
+            this.classList.add('active');
+            
+            // Filtrar notificaciones
+            const filterType = this.textContent.toLowerCase();
+            filterNotificaciones(filterType);
+        });
+    });
+    
+    function filterNotificaciones(type) {
+        const notificaciones = document.querySelectorAll('.list-group-item');
+        
+        notificaciones.forEach(notificacion => {
+            if (type === 'todas') {
+                notificacion.style.display = 'block';
+            } else if (type === 'no leídas') {
+                if (notificacion.classList.contains('bg-light')) {
+                    notificacion.style.display = 'block';
+                } else {
+                    notificacion.style.display = 'none';
+                }
+            } else if (type === 'leídas') {
+                if (!notificacion.classList.contains('bg-light')) {
+                    notificacion.style.display = 'block';
+                } else {
+                    notificacion.style.display = 'none';
+                }
+            }
+        });
+    }
+    
+    // Auto-marcar como leída al ver el detalle
+    const detailButtons = document.querySelectorAll('[data-target^="#modalDetalle"]');
+    detailButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const notificacionItem = this.closest('.list-group-item');
+            if (notificacionItem.classList.contains('bg-light')) {
+                // Marcar como leída después de un breve delay
+                setTimeout(() => {
+                    notificacionItem.classList.remove('bg-light', 'border-left-3', 'border-left-warning');
+                    notificacionItem.querySelector('.badge-warning')?.remove();
+                    
+                    // Actualizar contador
+                    const noLeidasBadge = document.querySelector('.notification-badge');
+                    if (noLeidasBadge) {
+                        const currentCount = parseInt(noLeidasBadge.textContent);
+                        if (currentCount > 1) {
+                            noLeidasBadge.textContent = currentCount - 1;
+                        } else {
+                            noLeidasBadge.remove();
+                        }
+                    }
+                }, 2000);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

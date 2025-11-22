@@ -1,0 +1,340 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard de Flota - CorreosChile{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-6 fw-bold text-primary mb-1">
+                        <i class="fas fa-truck me-2"></i>Gestión de Flota
+                    </h1>
+                    <p class="text-muted mb-0">Control y administración de vehículos y mantenimiento</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'flota:lista_vehiculos' %}" class="btn btn-primary">
+                        <i class="fas fa-list me-1"></i>Ver Vehículos
+                    </a>
+                    <a href="{% url 'flota:lista_mantenimientos' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-tools me-1"></i>Mantenimientos
+                    </a>
+                    <a href="{% url 'flota:lista_repuestos' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-cogs me-1"></i>Repuestos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas Generales -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-gradient-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Total Vehículos</h6>
+                            <h2 class="mb-0 fw-bold">{{ total_vehiculos }}</h2>
+                        </div>
+                        <div class="display-4 opacity-75">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-gradient-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Operativos</h6>
+                            <h2 class="mb-0 fw-bold">{{ vehiculos_operativos }}</h2>
+                            <small class="opacity-75">{{ vehiculos_operativos|floatformat:0 }}% de la flota</small>
+                        </div>
+                        <div class="display-4 opacity-75">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-gradient-warning text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">En Mantenimiento</h6>
+                            <h2 class="mb-0 fw-bold">{{ vehiculos_mantenimiento }}</h2>
+                        </div>
+                        <div class="display-4 opacity-75">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-gradient-danger text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Fuera de Servicio</h6>
+                            <h2 class="mb-0 fw-bold">{{ vehiculos_fuera_servicio }}</h2>
+                        </div>
+                        <div class="display-4 opacity-75">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Mantenimientos Pendientes -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Vehículos Requiriendo Mantenimiento
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if vehiculos_requieren_mantenimiento %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Patente</th>
+                                        <th>Vehículo</th>
+                                        <th>Conductor</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for vehiculo in vehiculos_requieren_mantenimiento %}
+                                    <tr>
+                                        <td><strong>{{ vehiculo.patente }}</strong></td>
+                                        <td>
+                                            <div>{{ vehiculo.marca }} {{ vehiculo.modelo }}</div>
+                                            <small class="text-muted">{{ vehiculo.tipo.nombre }}</small>
+                                        </td>
+                                        <td>
+                                            {% if vehiculo.conductor_asignado %}
+                                                {{ vehiculo.conductor_asignado.usuario.get_full_name }}
+                                            {% else %}
+                                                <span class="text-muted">Sin asignar</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-danger">
+                                                {{ vehiculo.get_estado_mantenimiento_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'flota:detalle_vehiculo' vehiculo.id %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle text-success display-4 mb-3"></i>
+                            <p class="text-muted">No hay vehículos requiriendo mantenimiento urgente</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Mantenimientos Próximos -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Mantenimientos Próximos (7 días)
+                        <span class="badge bg-light text-dark ms-2">{{ mantenimientos_proximos_7_dias }}</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if mantenimientos_proximos %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Vehículo</th>
+                                        <th>Tipo</th>
+                                        <th>Fecha</th>
+                                        <th>Días</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for mantenimiento in mantenimientos_proximos %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ mantenimiento.vehiculo.patente }}</strong>
+                                            <br><small class="text-muted">{{ mantenimiento.vehiculo.marca }} {{ mantenimiento.vehiculo.modelo }}</small>
+                                        </td>
+                                        <td>{{ mantenimiento.get_tipo_mantenimiento_display }}</td>
+                                        <td>{{ mantenimiento.fecha_programada|date:"d/m/Y" }}</td>
+                                        <td>
+                                            {% if mantenimiento.fecha_programada > today %}
+                                                <span class="badge bg-warning">
+                                                    Próximo
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Vencido</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'flota:detalle_mantenimiento' mantenimiento.id %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-calendar-check text-info display-4 mb-3"></i>
+                            <p class="text-muted">No hay mantenimientos programados para los próximos 7 días</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información Financiera -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-dollar-sign me-2"></i>
+                        Costos de Mantenimiento - Mes Actual
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <h2 class="display-6 fw-bold text-primary">${{ costo_mantenimiento_mes|floatformat:0 }}</h2>
+                    <p class="text-muted mb-0">Gastos en mantenimiento de vehículos</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-gas-pump me-2"></i>
+                        Consumo Promedio de Combustible
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <h2 class="display-6 fw-bold text-success">{{ promedio_consumo_combustible|floatformat:1 }} km/l</h2>
+                    <p class="text-muted mb-0">Rendimiento promedio de la flota</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen de Mantenimientos -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Resumen de Mantenimientos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <h4 class="text-primary">{{ mantenimientos_pendientes }}</h4>
+                            <p class="text-muted mb-0">Pendientes</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h4 class="text-warning">{{ mantenimientos_proximos_7_dias }}</h4>
+                            <p class="text-muted mb-0">Próximos 7 días</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h4 class="text-info">{{ vehiculos_operativos }}</h4>
+                            <p class="text-muted mb-0">Vehículos Operativos</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h4 class="text-secondary">{{ total_vehiculos }}</h4>
+                            <p class="text-muted mb-0">Total Flota</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Actualización automática cada 30 segundos
+setTimeout(function() {
+    location.reload();
+}, 30000);
+
+// Animación de números
+function animateValue(id, start, end, duration) {
+    var obj = document.getElementById(id);
+    if (!obj) return;
+    
+    var range = end - start;
+    var minTimer = 50;
+    var stepTime = Math.abs(Math.floor(duration / range));
+    stepTime = Math.max(stepTime, minTimer);
+    var startTime = new Date().getTime();
+    var endTime = startTime + duration;
+    var timer;
+
+    function run() {
+        var now = new Date().getTime();
+        var remaining = Math.max((endTime - now) / duration, 0);
+        var value = Math.round(end - (remaining * range));
+        obj.innerHTML = value;
+        if (value == end) {
+            clearInterval(timer);
+        }
+    }
+
+    timer = setInterval(run, stepTime);
+    run();
+}
+
+// Aplicar animación a las estadísticas
+document.addEventListener('DOMContentLoaded', function() {
+    // Animar números principales
+    animateValue('total-vehiculos', 0, {{ total_vehiculos }}, 2000);
+    animateValue('vehiculos-operativos', 0, {{ vehiculos_operativos }}, 2000);
+    animateValue('vehiculos-mantenimiento', 0, {{ vehiculos_mantenimiento }}, 2000);
+    animateValue('vehiculos-fuera-servicio', 0, {{ vehiculos_fuera_servicio }}, 2000);
+});
+</script>
+{% endblock %}

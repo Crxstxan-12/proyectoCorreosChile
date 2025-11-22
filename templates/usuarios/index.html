@@ -15,6 +15,7 @@
               <tr>
                 <th>Usuario</th>
                 <th>Rol</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -22,6 +23,21 @@
               <tr>
                 <td>{{ p.user.username }}</td>
                 <td>{{ p.rol }}</td>
+                <td>
+                  {% if es_admin %}
+                  <form method="post" class="form-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="set_rol">
+                    <input type="hidden" name="user_id" value="{{ p.user.id }}">
+                    <select name="rol" class="form-control form-control-sm mr-2">
+                      <option value="usuario" {% if p.rol == 'usuario' %}selected{% endif %}>usuario</option>
+                      <option value="editor" {% if p.rol == 'editor' %}selected{% endif %}>editor</option>
+                      <option value="administrador" {% if p.rol == 'administrador' %}selected{% endif %}>administrador</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-primary">Guardar</button>
+                  </form>
+                  {% else %}-{% endif %}
+                </td>
               </tr>
               {% empty %}
               <tr><td colspan="2" class="text-center">Sin datos</td></tr>
@@ -29,6 +45,8 @@
             </tbody>
           </table>
         </div>
+        {% if saved_role %}<div class="alert alert-success mt-2">Rol actualizado</div>{% endif %}
+        {% if error_role %}<div class="alert alert-danger mt-2">{{ error_role }}</div>{% endif %}
       </div>
     </div>
   </div>

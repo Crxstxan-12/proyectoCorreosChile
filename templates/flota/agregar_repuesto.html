@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Agregar Repuesto - Flota{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg shadow-lg p-6 mb-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold text-white mb-2">Agregar Repuesto</h1>
+                        <p class="text-purple-100">Complete el formulario para agregar un nuevo repuesto al inventario</p>
+                    </div>
+                    <div class="bg-white bg-opacity-20 rounded-full p-3">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Code and Name -->
+                        <div>
+                            <label for="id_codigo" class="block text-sm font-medium text-gray-700 mb-2">
+                                Código del Repuesto *
+                            </label>
+                            <input type="text" name="codigo" id="id_codigo" required maxlength="50"
+                                   placeholder="ING-001, FRE-123, etc."
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+
+                        <div>
+                            <label for="id_nombre" class="block text-sm font-medium text-gray-700 mb-2">
+                                Nombre del Repuesto *
+                            </label>
+                            <input type="text" name="nombre" id="id_nombre" required maxlength="100"
+                                   placeholder="Filtro de aceite, Pastillas de freno, etc."
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+                    </div>
+
+                    <!-- Category and Unit -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="id_categoria" class="block text-sm font-medium text-gray-700 mb-2">
+                                Categoría *
+                            </label>
+                            <select name="categoria" id="id_categoria" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <option value="">-- Seleccione categoría --</option>
+                                <option value="motor">Motor</option>
+                                <option value="transmision">Transmisión</option>
+                                <option value="frenos">Frenos</option>
+                                <option value="suspension">Suspensión</option>
+                                <option value="electrico">Eléctrico</option>
+                                <option value="carroceria">Carrocería</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="id_unidad_medida" class="block text-sm font-medium text-gray-700 mb-2">
+                                Unidad de Medida *
+                            </label>
+                            <input type="text" name="unidad_medida" id="id_unidad_medida" required maxlength="20"
+                                   placeholder="unidad, pieza, litro, kg, etc."
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+                    </div>
+
+                    <!-- Stock Information -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label for="id_cantidad_disponible" class="block text-sm font-medium text-gray-700 mb-2">
+                                Cantidad Disponible *
+                            </label>
+                            <input type="number" name="cantidad_disponible" id="id_cantidad_disponible" required min="0"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+
+                        <div>
+                            <label for="id_stock_minimo" class="block text-sm font-medium text-gray-700 mb-2">
+                                Stock Mínimo *
+                            </label>
+                            <input type="number" name="stock_minimo" id="id_stock_minimo" required min="0"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+
+                        <div>
+                            <label for="id_precio_unitario" class="block text-sm font-medium text-gray-700 mb-2">
+                                Precio Unitario ($) *
+                            </label>
+                            <input type="number" name="precio_unitario" id="id_precio_unitario" required min="0" step="0.01"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <label for="id_descripcion" class="block text-sm font-medium text-gray-700 mb-2">
+                            Descripción
+                        </label>
+                        <textarea name="descripcion" id="id_descripcion" rows="4" maxlength="500"
+                                  placeholder="Describa las características y especificaciones del repuesto..."
+                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"></textarea>
+                    </div>
+
+                    <!-- Supplier Information -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="id_proveedor" class="block text-sm font-medium text-gray-700 mb-2">
+                                Proveedor
+                            </label>
+                            <input type="text" name="proveedor" id="id_proveedor" maxlength="100"
+                                   placeholder="Nombre del proveedor o distribuidor"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+
+                        <div>
+                            <label for="id_referencia_proveedor" class="block text-sm font-medium text-gray-700 mb-2">
+                                Referencia del Proveedor
+                            </label>
+                            <input type="text" name="referencia_proveedor" id="id_referencia_proveedor" maxlength="50"
+                                   placeholder="Código o referencia del proveedor"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+                    </div>
+
+                    <!-- Vehicle Compatibility -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Compatibilidad con Tipos de Vehículo
+                        </label>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {% for tipo in tipos_vehiculo %}
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="tipos_vehiculo_compatible" value="{{ tipo.id }}"
+                                           class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
+                                    <span class="ml-2 text-sm text-gray-700">{{ tipo.nombre }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex justify-end space-x-4">
+                        <a href="{% url 'flota:inventario_repuestos' %}" 
+                           class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                            Cancelar
+                        </a>
+                        <button type="submit" 
+                                class="px-8 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all transform hover:scale-105">
+                            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Agregar Repuesto
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const codigo = document.getElementById('id_codigo').value.trim();
+    const nombre = document.getElementById('id_nombre').value.trim();
+    const categoria = document.getElementById('id_categoria').value;
+    const cantidad = document.getElementById('id_cantidad_disponible').value;
+    const stockMinimo = document.getElementById('id_stock_minimo').value;
+    const precio = document.getElementById('id_precio_unitario').value;
+    
+    if (!codigo || !nombre || !categoria || !cantidad || !stockMinimo || !precio) {
+        e.preventDefault();
+        alert('Por favor complete todos los campos obligatorios.');
+        return;
+    }
+    
+    if (parseInt(cantidad) < 0 || parseInt(stockMinimo) < 0 || parseFloat(precio) < 0) {
+        e.preventDefault();
+        alert('Los valores numéricos no pueden ser negativos.');
+        return;
+    }
+    
+    if (parseInt(cantidad) < parseInt(stockMinimo)) {
+        if (!confirm('La cantidad disponible es menor que el stock mínimo. ¿Desea continuar?')) {
+            e.preventDefault();
+            return;
+        }
+    }
+});
+
+// Auto-generate code suggestion based on category
+document.getElementById('id_categoria').addEventListener('change', function() {
+    const categoria = this.value;
+    const codigoInput = document.getElementById('id_codigo');
+    
+    if (categoria && !codigoInput.value) {
+        const prefix = categoria.substring(0, 3).toUpperCase();
+        const randomNum = Math.floor(Math.random() * 900) + 100;
+        codigoInput.value = prefix + '-' + randomNum;
+    }
+});
+</script>
+{% endblock %}

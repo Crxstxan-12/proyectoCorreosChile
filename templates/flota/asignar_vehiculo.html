@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Asignar Vehículo - Flota{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-green-600 to-green-700 rounded-lg shadow-lg p-6 mb-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold text-white mb-2">Asignar Vehículo</h1>
+                        <p class="text-green-100">Asigne un vehículo a un conductor para operaciones</p>
+                    </div>
+                    <div class="bg-white bg-opacity-20 rounded-full p-3">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assignment Form -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Vehicle Selection -->
+                        <div>
+                            <label for="id_vehiculo" class="block text-sm font-medium text-gray-700 mb-2">
+                                Vehículo Disponible *
+                            </label>
+                            <select name="vehiculo" id="id_vehiculo" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    onchange="actualizarInfoVehiculo()">
+                                <option value="">-- Seleccione un vehículo --</option>
+                                {% for vehiculo in vehiculos_disponibles %}
+                                    <option value="{{ vehiculo.id }}" 
+                                            data-tipo="{{ vehiculo.tipo_vehiculo.nombre }}"
+                                            data-modelo="{{ vehiculo.modelo }}"
+                                            data-placa="{{ vehiculo.numero_placa }}"
+                                            data-capacidad="{{ vehiculo.capacidad_carga }}">
+                                        {{ vehiculo.numero_placa }} - {{ vehiculo.modelo }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Driver Selection -->
+                        <div>
+                            <label for="id_conductor" class="block text-sm font-medium text-gray-700 mb-2">
+                                Conductor *
+                            </label>
+                            <select name="conductor" id="id_conductor" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    onchange="actualizarInfoConductor()">
+                                <option value="">-- Seleccione un conductor --</option>
+                                {% for conductor in conductores %}
+                                    <option value="{{ conductor.id }}"
+                                            data-nombre="{{ conductor.user.get_full_name }}"
+                                            data-licencia="{{ conductor.numero_licencia }}"
+                                            data-telefono="{{ conductor.user.phone|default:'No registrado' }}">
+                                        {{ conductor.user.get_full_name }} - {{ conductor.numero_licencia }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Assignment Details -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="id_fecha_asignacion" class="block text-sm font-medium text-gray-700 mb-2">
+                                Fecha de Asignación *
+                            </label>
+                            <input type="date" name="fecha_asignacion" id="id_fecha_asignacion" required
+                                   value="{% now 'Y-m-d' %}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        </div>
+
+                        <div>
+                            <label for="id_fecha_estimada_devolucion" class="block text-sm font-medium text-gray-700 mb-2">
+                                Fecha Estimada de Devolución
+                            </label>
+                            <input type="date" name="fecha_estimada_devolucion" id="id_fecha_estimada_devolucion"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        </div>
+                    </div>
+
+                    <!-- Purpose and Notes -->
+                    <div class="space-y-6">
+                        <div>
+                            <label for="id_proposito" class="block text-sm font-medium text-gray-700 mb-2">
+                                Propósito de la Asignación *
+                            </label>
+                            <select name="proposito" id="id_proposito" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                <option value="">-- Seleccione el propósito --</option>
+                                <option value="reparto_diario">Reparto Diario</option>
+                                <option value="reparto_especial">Reparto Especial</option>
+                                <option value="traslado">Traslado de Mercancías</option>
+                                <option value="servicio_especial">Servicio Especial</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="id_observaciones" class="block text-sm font-medium text-gray-700 mb-2">
+                                Observaciones
+                            </label>
+                            <textarea name="observaciones" id="id_observaciones" rows="3"
+                                      placeholder="Ingrese cualquier observación adicional sobre la asignación..."
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Vehicle Information Card -->
+                    <div id="info_vehiculo" class="hidden bg-gray-50 rounded-lg p-4 border">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Información del Vehículo</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div>
+                                <span class="font-medium text-gray-600">Tipo:</span>
+                                <div id="vehiculo_tipo" class="text-gray-800"></div>
+                            </div>
+                            <div>
+                                <span class="font-medium text-gray-600">Modelo:</span>
+                                <div id="vehiculo_modelo" class="text-gray-800"></div>
+                            </div>
+                            <div>
+                                <span class="font-medium text-gray-600">Placa:</span>
+                                <div id="vehiculo_placa" class="text-gray-800"></div>
+                            </div>
+                            <div>
+                                <span class="font-medium text-gray-600">Capacidad:</span>
+                                <div id="vehiculo_capacidad" class="text-gray-800"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Driver Information Card -->
+                    <div id="info_conductor" class="hidden bg-gray-50 rounded-lg p-4 border">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Información del Conductor</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                                <span class="font-medium text-gray-600">Nombre:</span>
+                                <div id="conductor_nombre" class="text-gray-800"></div>
+                            </div>
+                            <div>
+                                <span class="font-medium text-gray-600">Licencia:</span>
+                                <div id="conductor_licencia" class="text-gray-800"></div>
+                            </div>
+                            <div>
+                                <span class="font-medium text-gray-600">Teléfono:</span>
+                                <div id="conductor_telefono" class="text-gray-800"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex justify-end space-x-4">
+                        <a href="{% url 'flota:dashboard_flota' %}" 
+                           class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                            Cancelar
+                        </a>
+                        <button type="submit" 
+                                class="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all transform hover:scale-105">
+                            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            Asignar Vehículo
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Current Assignments -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Asignaciones Actuales</h2>
+                
+                {% if asignaciones_activas %}
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehículo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conductor</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Asignación</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Propósito</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for asignacion in asignaciones_activas %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900">{{ asignacion.vehiculo.numero_placa }}</div>
+                                            <div class="text-sm text-gray-500">{{ asignacion.vehiculo.modelo }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900">{{ asignacion.conductor.user.get_full_name }}</div>
+                                            <div class="text-sm text-gray-500">{{ asignacion.conductor.numero_licencia }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {{ asignacion.fecha_asignacion|date:"d/m/Y" }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                {% if asignacion.proposito == 'reparto_diario' %}bg-blue-100 text-blue-800
+                                                {% elif asignacion.proposito == 'reparto_especial' %}bg-yellow-100 text-yellow-800
+                                                {% elif asignacion.proposito == 'traslado' %}bg-green-100 text-green-800
+                                                {% elif asignacion.proposito == 'servicio_especial' %}bg-purple-100 text-purple-800
+                                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                                {{ asignacion.get_proposito_display }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                {% if asignacion.activa %}bg-green-100 text-green-800
+                                                {% else %}bg-red-100 text-red-800{% endif %}">
+                                                {% if asignacion.activa %}Activa{% else %}Finalizada{% endif %}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            {% if asignacion.activa %}
+                                                <button onclick="finalizarAsignacion({{ asignacion.id }})" 
+                                                        class="text-red-600 hover:text-red-900">
+                                                    Finalizar
+                                                </button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">No hay asignaciones activas</h3>
+                        <p class="mt-1 text-sm text-gray-500">Las asignaciones activas aparecerán aquí.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function actualizarInfoVehiculo() {
+    const select = document.getElementById('id_vehiculo');
+    const infoCard = document.getElementById('info_vehiculo');
+    
+    if (select.value) {
+        const option = select.options[select.selectedIndex];
+        infoCard.classList.remove('hidden');
+        
+        document.getElementById('vehiculo_tipo').textContent = option.dataset.tipo;
+        document.getElementById('vehiculo_modelo').textContent = option.dataset.modelo;
+        document.getElementById('vehiculo_placa').textContent = option.dataset.placa;
+        document.getElementById('vehiculo_capacidad').textContent = option.dataset.capacidad + ' kg';
+    } else {
+        infoCard.classList.add('hidden');
+    }
+}
+
+function actualizarInfoConductor() {
+    const select = document.getElementById('id_conductor');
+    const infoCard = document.getElementById('info_conductor');
+    
+    if (select.value) {
+        const option = select.options[select.selectedIndex];
+        infoCard.classList.remove('hidden');
+        
+        document.getElementById('conductor_nombre').textContent = option.dataset.nombre;
+        document.getElementById('conductor_licencia').textContent = option.dataset.licencia;
+        document.getElementById('conductor_telefono').textContent = option.dataset.telefono;
+    } else {
+        infoCard.classList.add('hidden');
+    }
+}
+
+function finalizarAsignacion(asignacionId) {
+    if (confirm('¿Está seguro de que desea finalizar esta asignación?')) {
+        fetch(`/flota/api/asignaciones/${asignacionId}/finalizar/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error al finalizar la asignación: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error al procesar la solicitud.');
+        });
+    }
+}
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const vehiculo = document.getElementById('id_vehiculo').value;
+    const conductor = document.getElementById('id_conductor').value;
+    const proposito = document.getElementById('id_proposito').value;
+    const fechaAsignacion = document.getElementById('id_fecha_asignacion').value;
+    const fechaDevolucion = document.getElementById('id_fecha_estimada_devolucion').value;
+    
+    if (!vehiculo || !conductor || !proposito || !fechaAsignacion) {
+        e.preventDefault();
+        alert('Por favor complete todos los campos obligatorios.');
+        return;
+    }
+    
+    if (fechaDevolucion && fechaAsignacion >= fechaDevolucion) {
+        e.preventDefault();
+        alert('La fecha de devolución debe ser posterior a la fecha de asignación.');
+        return;
+    }
+});
+</script>
+{% endblock %}

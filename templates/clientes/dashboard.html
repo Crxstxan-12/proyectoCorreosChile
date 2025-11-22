@@ -1,0 +1,280 @@
+{% extends 'clientes/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Mi Dashboard - {{ block.super }}{% endblock %}
+
+{% block dashboard_content %}
+<!-- Dashboard Principal del Cliente -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="client-dashboard">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-4 mb-3">
+                        <i class="fas fa-user-circle mr-3"></i>
+                        ¡Hola, {{ cliente.nombre_completo }}!
+                    </h1>
+                    <p class="lead mb-0">
+                        Bienvenido a tu dashboard personal. Aquí puedes gestionar todos tus envíos y preferencias.
+                    </p>
+                </div>
+                <div class="col-md-4 text-right">
+                    <div class="text-center">
+                        <div class="mb-2">
+                            <i class="fas fa-calendar-alt fa-2x"></i>
+                        </div>
+                        <div class="small">
+                            Miembro desde<br>
+                            <strong>{{ cliente.fecha_registro|date:"d/m/Y" }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tarjetas de Estadísticas -->
+<div class="row mb-5">
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="stats-card text-center">
+            <div class="stats-number">{{ total_envios }}</div>
+            <div class="stats-label">Total de Envíos</div>
+            <div class="mt-3">
+                <i class="fas fa-box fa-3x text-muted"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="stats-card text-center">
+            <div class="stats-number">{{ envios_activos }}</div>
+            <div class="stats-label">Envíos Activos</div>
+            <div class="mt-3">
+                <i class="fas fa-truck fa-3x text-warning"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="stats-card text-center">
+            <div class="stats-number">{{ envios_entregados }}</div>
+            <div class="stats-label">Envíos Entregados</div>
+            <div class="mt-3">
+                <i class="fas fa-check-circle fa-3x text-success"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Secciones de Contenido -->
+<div class="row">
+    <!-- Envíos Recientes -->
+    <div class="col-lg-8 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="mb-0">
+                            <i class="fas fa-clock mr-2 text-primary"></i>
+                            Envíos Recientes
+                        </h5>
+                    </div>
+                    <div class="col-auto">
+                        <a href="{% url 'clientes:mis_envios' %}" class="btn btn-sm btn-outline-primary">
+                            Ver Todos <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if envios_recientes %}
+                    <div class="list-group list-group-flush">
+                        {% for envio in envios_recientes %}
+                            <div class="list-group-item">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <div class="font-weight-bold text-primary">
+                                            {{ envio.codigo }}
+                                        </div>
+                                        <small class="text-muted">
+                                            {{ envio.creado_en|date:"d/m/Y" }}
+                                        </small>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="small text-muted mb-1">Destinatario</div>
+                                        <div>{{ envio.destinatario_nombre }}</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="small text-muted mb-1">Destino</div>
+                                        <div>{{ envio.destino }}</div>
+                                    </div>
+                                    <div class="col-md-2 text-right">
+                                        <span class="status-badge status-{{ envio.estado }}">
+                                            {{ envio.get_estado_display }}
+                                        </span>
+                                        <div class="mt-2">
+                                            <a href="{% url 'clientes:detalle_envio' envio.codigo %}" 
+                                               class="btn btn-sm btn-outline-secondary">
+                                                Ver Detalle
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-box fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No tienes envíos registrados aún.</p>
+                        <a href="{% url 'envios:index' %}" class="btn btn-primary">
+                            <i class="fas fa-plus mr-2"></i>Crear Primer Envío
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Columna derecha con notificaciones y actividad -->
+    <div class="col-lg-4">
+        <!-- Notificaciones Recientes -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h6 class="mb-0">
+                            <i class="fas fa-bell mr-2 text-warning"></i>
+                            Notificaciones Recientes
+                        </h6>
+                    </div>
+                    <div class="col-auto">
+                        <a href="{% url 'clientes:notificaciones_cliente' %}" class="small text-primary">
+                            Ver Todas
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if notificaciones_recientes %}
+                    <div class="list-group list-group-flush">
+                        {% for notificacion in notificaciones_recientes %}
+                            <div class="list-group-item {% if not notificacion.leido %}bg-light{% endif %}">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ notificacion.tipo_notificacion }}</h6>
+                                    <small>{{ notificacion.fecha_envio|timesince }} atrás</small>
+                                </div>
+                                <p class="mb-1 small">{{ notificacion.contenido|truncatechars:80 }}</p>
+                                <small class="text-muted">{{ notificacion.canal }}</small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-bell-slash fa-2x text-muted mb-2"></i>
+                        <p class="small text-muted">No tienes notificaciones recientes.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Actividad Reciente -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent">
+                <h6 class="mb-0">
+                    <i class="fas fa-history mr-2 text-info"></i>
+                    Actividad Reciente
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                {% if actividad_reciente %}
+                    <div class="list-group list-group-flush">
+                        {% for actividad in actividad_reciente %}
+                            <div class="activity-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="mr-3">
+                                        <i class="fas fa-circle text-primary" style="font-size: 0.5rem;"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="small mb-1">
+                                            <strong>{{ actividad.get_tipo_display }}</strong>
+                                        </div>
+                                        <div class="text-muted small">{{ actividad.descripcion }}</div>
+                                        <div class="activity-time">
+                                            <i class="far fa-clock mr-1"></i>
+                                            {{ actividad.fecha|timesince }} atrás
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-history fa-2x text-muted mb-2"></i>
+                        <p class="small text-muted">No hay actividad reciente.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Acciones Rápidas -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <h5 class="mb-4">¿Qué te gustaría hacer hoy?</h5>
+                <div class="row justify-content-center">
+                    <div class="col-lg-3 col-md-4 col-6 mb-3">
+                        <a href="{% url 'clientes:mis_envios' %}" class="btn btn-outline-primary btn-block btn-dashboard">
+                            <i class="fas fa-search mr-2"></i>Buscar Envío
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-4 col-6 mb-3">
+                        <a href="{% url 'clientes:perfil_cliente' %}" class="btn btn-outline-secondary btn-block btn-dashboard">
+                            <i class="fas fa-user-edit mr-2"></i>Editar Perfil
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-4 col-6 mb-3">
+                        <a href="{% url 'clientes:preferencias_notificaciones' %}" class="btn btn-outline-warning btn-block btn-dashboard">
+                            <i class="fas fa-bell mr-2"></i>Configurar Alertas
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-4 col-6 mb-3">
+                        <a href="{% url 'clientes:descargar_reporte' %}" class="btn btn-outline-success btn-block btn-dashboard">
+                            <i class="fas fa-download mr-2"></i>Descargar Reporte
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+// Animaciones al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    // Animar estadísticas
+    const statsNumbers = document.querySelectorAll('.stats-number');
+    statsNumbers.forEach(function(element) {
+        const finalValue = parseInt(element.textContent);
+        let currentValue = 0;
+        const increment = finalValue / 50;
+        
+        const timer = setInterval(function() {
+            currentValue += increment;
+            if (currentValue >= finalValue) {
+                element.textContent = finalValue;
+                clearInterval(timer);
+            } else {
+                element.textContent = Math.floor(currentValue);
+            }
+        }, 30);
+    });
+});
+</script>
+{% endblock %}

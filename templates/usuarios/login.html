@@ -7,7 +7,7 @@
 <div class="login-container">
   <div class="login-card">
     <div class="card">
-      <div class="card-header">Iniciar Sesión</div>
+      <div class="card-header bg-danger text-white">Iniciar Sesión</div>
       <div class="card-body">
         {% if form.non_field_errors %}
           <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
@@ -25,7 +25,7 @@
             {{ form.password }}
             {% for e in form.password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
           </div>
-          <button type="submit" class="btn btn-primary">Entrar</button>
+          <button type="submit" class="btn btn-danger">Entrar</button>
         </form>
       </div>
     </div>

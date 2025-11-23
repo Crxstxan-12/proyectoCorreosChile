@@ -1,7 +1,7 @@
 table.table td, table.table th{vertical-align:middle}
 .reclamos-bg{background:none}
 html, body{height:100%}
-body{background:linear-gradient(135deg,#ffb75e 0%, #ed8f03 100%)}
+body.reclamos-bg{background:#fff !important}
 .reclamos-bg .card{background:#fff;box-shadow:0 0.5rem 1rem rgba(0,0,0,.06);border:1px solid #eee}
 .toolbar .input-group{width:360px}
 .toolbar .form-control{border-color:#dee2e6}

@@ -6,8 +6,8 @@
 <!-- Hero Section -->
 <section class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
     <div class="container mx-auto px-4 text-center">
-        <h1 class="text-4xl md:text-5xl font-bold mb-4">📦 Seguimiento de Pedidos</h1>
-        <p class="text-xl mb-8">Rastrea tu envío en tiempo real sin necesidad de crear una cuenta</p>
+        <h1 class="text-4xl md:text-5xl font-bold mb-4"><span style="color:#e30613">Seguimiento de Pedidos </span></h1>
+        <p class="text-xl mb-8"><span style="color:black">Rastrea tu envío en tiempo real sin necesidad de crear una cuenta</pan></p>
         
         <!-- Buscador Principal -->
         <div class="max-w-2xl mx-auto">
@@ -17,9 +17,9 @@
                            name="codigo" 
                            placeholder="Ingresa tu código de seguimiento (ej: CC251122912199)" 
                            value="{{ codigo_buscado|default:'' }}"
-                           class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800">
+                           class="flex-3 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800">
                     <button type="submit" 
-                            class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition duration-300">
+                            class="bg-blue-600 hover:bg-blue-700 text-black px-8 py-3 rounded-lg font-semibold transition duration-300">
                         🔍 Buscar Pedido
                     </button>
                 </div>
@@ -115,26 +115,26 @@
 <!-- Estadísticas Generales -->
 <section class="py-12 bg-white">
     <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-8 text-gray-800">📊 Estadísticas de Envíos</h2>
+        <h2 class="text-3xl font-bold text-center mb-3 text-gray-800">📊 Estadísticas de Envíos</h2>
         
         <!-- Tarjetas de Estadísticas -->
         <div class="grid md:grid-cols-3 gap-6 mb-12">
-            <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg shadow-lg p-6 text-center">
+            <div class="bg-gradient-to-br from-gray-500 to-gray-600 text-white rounded-lg shadow-lg p-6 text-center">
                 <div class="text-4xl mb-2">📦</div>
-                <h3 class="text-2xl font-bold">{{ total_paquetes|default:"0" }}</h3>
-                <p class="text-blue-100">Total de Envíos</p>
+                <h3 class="text-2xl font-bold">{{ total_paquetes|default:'<span style="color:black">0</span>' }}</h3>
+                <p class="text-blue-100s"><span style="color:black">Total de Envíos</span></p>
             </div>
             
             <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg shadow-lg p-6 text-center">
                 <div class="text-4xl mb-2">✅</div>
-                <h3 class="text-2xl font-bold">{{ paquetes_entregados|default:"0" }}</h3>
-                <p class="text-green-100">Pedidos Entregados</p>
+                <h3 class="text-2xl font-bold">{{ paquetes_entregados|default:'<span style="color:black">0</span>' }}</h3>
+                <p class="text-green-100"><span style="color:black">Pedidos Entregados</span></p>
             </div>
             
             <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 text-white rounded-lg shadow-lg p-6 text-center">
                 <div class="text-4xl mb-2">🚚</div>
-                <h3 class="text-2xl font-bold">{{ paquetes_en_transito|default:"0" }}</h3>
-                <p class="text-yellow-100">En Tránsito</p>
+                <h3 class="text-2xl font-bold">{{ paquetes_en_transito|default:'<span style="color:black">0</span>'}}</h3>
+                <p class="text-yellow-100"><span style="color:black">En Transito</span></p>
             </div>
         </div>
         
@@ -195,7 +195,7 @@
 </section>
 
 <!-- Footer -->
-<section class="bg-blue-800 text-white py-8">
+<section class="bg-blue-800 text-gray py-8">
     <div class="container mx-auto px-4 text-center">
         <h3 class="text-xl font-semibold mb-2">📞 ¿Necesitas ayuda?</h3>
         <p class="mb-4">Contacta a nuestro equipo de atención al cliente</p>

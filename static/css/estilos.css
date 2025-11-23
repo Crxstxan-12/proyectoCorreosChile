@@ -1,4 +1,4 @@
-body { font-family: Arial, sans-serif; background-color: #f8f9fb; }
+body { font-family: Arial, sans-serif; background-color: #fff !important; }
 .navbar .navbar-brand { color: #343a40 !important; font-weight: 700; letter-spacing: .2px; }
 .navbar .nav-link { color: #343a40 !important; }
 .navbar .nav-link:hover { color: #0d6efd !important; }
@@ -8,11 +8,11 @@ body { font-family: Arial, sans-serif; background-color: #f8f9fb; }
 
 :root { --cc-red: #e30613; --cc-red-dark: #c00510; }
 /* Corporate menu */
-.cc-menu-env{position:sticky;top:0;z-index:1020;background:linear-gradient(135deg,#ffb75e 0%, #ed8f03 100%);box-shadow:0 0.5rem 1rem rgba(0,0,0,.08)}
+.cc-menu-env{position:sticky;top:0;z-index:1020;background:var(--cc-red);box-shadow:0 0.5rem 1rem rgba(0,0,0,.08)}
 .cc-topbar{background:transparent;border-bottom:1px solid rgba(255,255,255,.25);padding:.5rem 0}
 .cc-toplink{color:#fff !important;text-decoration:none;padding-bottom:.25rem}
 .cc-toplink.active{color:#fff;border-bottom:2px solid rgba(255,255,255,.8)}
-.cc-mainnav{background:transparent;border:none}
+.cc-mainnav{background:var(c);border:none}
 .cc-mainnav .container{padding:.75rem 0}
 .cc-logo{font-weight:700;color:#fff;text-decoration:none}
 .cc-nav{display:flex;flex-wrap:wrap}

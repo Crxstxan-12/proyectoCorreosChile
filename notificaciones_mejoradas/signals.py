@@ -1,4 +1,4 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from datetime import timedelta
@@ -19,7 +19,7 @@ def crear_notificacion_cambio_estado(sender, instance, created, **kwargs):
         programar_notificacion_envio_creado(instance)
     else:
         # Detectar cambio de estado
-        if hasattr(instance, '_original_estado') and instance.estado != instance._original_estado:
+        if hasattr(instance, '_estado_anterior') and instance.estado != instance._estado_anterior:
             manejar_cambio_estado_envio(instance)
 
 
@@ -196,11 +196,10 @@ def calcular_nueva_fecha_estimada(envio):
     return None
 
 
-# Guardar estado original antes de guardar
-@receiver(post_save, sender=Envio)
-def guardar_estado_original(sender, instance, **kwargs):
-    """Guarda el estado original para detectar cambios"""
+# Capturar estado anterior antes de guardar
+@receiver(pre_save, sender=Envio)
+def capturar_estado_anterior(sender, instance, **kwargs):
     if instance.pk:
         original = Envio.objects.filter(pk=instance.pk).first()
         if original:
-            instance._original_estado = original.estado
+            instance._estado_anterior = original.estado

@@ -3,13 +3,14 @@
 {% block title %}Reporte Envíos{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+<link rel="stylesheet" href="{% static 'envios/style.css' %}">
 <style>
 @media print{ .cc-topbar, .cc-mainnav, .cc-redbar, .btn { display:none !important } }
 .brand{font-weight:700;color:#e30613}
 .meta{color:#666}
 </style>
 {% endblock %}
-{% block body_class %}report-bg{% endblock %}
+{% block body_class %}envios-bg{% endblock %}
 {% block content %}
 <div class="container py-3">
   <div class="d-flex align-items-center justify-content-between mb-3">
@@ -37,7 +38,21 @@
         {% for e in envios %}
         <tr>
           <td>{{ e.codigo }}</td>
-          <td>{{ e.estado }}</td>
+          <td>
+            {% if e.estado == 'pendiente' %}
+              <span class="badge badge-warning estado-pendiente">Pendiente</span>
+            {% elif e.estado == 'en_transito' %}
+              <span class="badge badge-info estado-transito">En tránsito</span>
+            {% elif e.estado == 'entregado' %}
+              <span class="badge badge-success estado-entregado">Entregado</span>
+            {% elif e.estado == 'devuelto' %}
+              <span class="badge badge-secondary estado-devuelto">Devuelto</span>
+            {% elif e.estado == 'cancelado' %}
+              <span class="badge badge-danger estado-cancelado">Cancelado</span>
+            {% else %}
+              <span class="badge badge-light">{{ e.estado }}</span>
+            {% endif %}
+          </td>
           <td>{{ e.origen }}</td>
           <td>{{ e.destino }}</td>
           <td>{{ e.destinatario_nombre }}</td>

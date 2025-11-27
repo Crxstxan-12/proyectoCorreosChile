@@ -13,3 +13,9 @@ body{background:linear-gradient(135deg,#667eea 0%, #764ba2 100%)}
 .pagination .page-link{color:#0b6fdc}
 .pagination .page-item.active .page-link{background-color:#0b6fdc;border-color:#0b6fdc;color:#fff}
 .pagination .page-link:hover{color:#084e9b}
+/* Preferencias de canal */
+.pref-canales{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem}
+.pref-label{font-weight:600;margin-right:.5rem}
+.pref-canales .form-check{display:flex;align-items:center;margin-right:.75rem}
+.pref-canales .form-check-input{margin-right:.25rem}
+.pref-canales .btn{margin-left:auto}

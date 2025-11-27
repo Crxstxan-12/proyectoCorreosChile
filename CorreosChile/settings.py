@@ -90,6 +90,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',  # Proporciona el usuario en los templates
                 'django.template.context_processors.csrf',  # Protección CSRF
                 'django.contrib.messages.context_processors.messages',
+                'flota.context_processors.flota_badges',
             ],
         },
     },

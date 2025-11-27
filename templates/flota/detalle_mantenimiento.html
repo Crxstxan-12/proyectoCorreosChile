@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row mb-3">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+      <h1 class="h4 text-primary mb-0">Detalle de Mantenimiento</h1>
+      <a href="{% url 'flota:lista_mantenimientos' %}" class="btn btn-outline-secondary">Volver</a>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="fw-bold">{{ mantenimiento.vehiculo.numero_placa }}</div>
+          <div class="text-muted">{{ mantenimiento.vehiculo.marca }} {{ mantenimiento.vehiculo.modelo }}</div>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <div>{{ mantenimiento.get_tipo_mantenimiento_display }}</div>
+          <div><span class="badge bg-info">{{ mantenimiento.get_estado_display }}</span></div>
+        </div>
+      </div>
+      <div class="row mt-3">
+        <div class="col-md-3"><div class="text-muted">Fecha programada</div><div>{{ mantenimiento.fecha_programada|date:"d/m/Y" }}</div></div>
+        <div class="col-md-3"><div class="text-muted">Fecha fin</div><div>{% if mantenimiento.fecha_fin %}{{ mantenimiento.fecha_fin|date:"d/m/Y H:i" }}{% else %}-{% endif %}</div></div>
+        <div class="col-md-3"><div class="text-muted">Kilometraje</div><div>{{ mantenimiento.kilometraje_actual }}</div></div>
+        <div class="col-md-3"><div class="text-muted">Costo total</div><div>${{ costo_total|floatformat:0 }}</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header bg-secondary text-white">Repuestos utilizados</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Repuesto</th>
+              <th>Cantidad</th>
+              <th>Costo unitario</th>
+              <th>Costo total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ur in repuestos_utilizados %}
+            <tr>
+              <td>{{ ur.repuesto.nombre }}</td>
+              <td class="text-end">{{ ur.cantidad_utilizada }}</td>
+              <td class="text-end">${{ ur.costo_unitario|floatformat:0 }}</td>
+              <td class="text-end">${{ ur.costo_total|floatformat:0 }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center py-3 text-muted">Sin repuestos</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

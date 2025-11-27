@@ -178,7 +178,7 @@
                                 <i class="fas fa-eye"></i> Ver Detalles
                             </a>
                             {% if ruta_actual.estado == 'pendiente' %}
-                                <button class="btn btn-success" onclick="iniciarRuta({{ ruta_actual.id }})">
+                                <button class="btn btn-success" onclick="iniciarRuta({{ ruta_actual.id  }})">
                                     <i class="fas fa-play"></i> Iniciar Ruta
                                 </button>
                             {% elif ruta_actual.estado == 'en_progreso' %}

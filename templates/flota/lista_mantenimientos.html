@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mantenimientos - Flota{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+      <div>
+        <h1 class="display-6 fw-bold text-primary mb-1">Mantenimientos</h1>
+        <p class="text-muted mb-0">Programación y seguimiento de mantenimientos</p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{% url 'flota:dashboard_flota' %}" class="btn btn-outline-primary">Dashboard</a>
+        <a href="{% url 'flota:lista_vehiculos' %}" class="btn btn-outline-secondary">Vehículos</a>
+        <a href="{% url 'flota:lista_repuestos' %}" class="btn btn-outline-secondary">Repuestos</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header bg-primary text-white">Filtros</div>
+    <div class="card-body">
+      <form method="get" class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label">Vehículo</label>
+          <select name="vehiculo" class="form-select">
+            <option value="">Todos</option>
+            {% for v in vehiculos %}
+              <option value="{{ v.id }}" {% if filtros.vehiculo == v.id|stringformat:"s" %}selected{% endif %}>{{ v.numero_placa }} - {{ v.marca }} {{ v.modelo }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Estado</label>
+          <select name="estado" class="form-select">
+            <option value="">Todos</option>
+            {% for value, label in estados_mantenimiento %}
+              <option value="{{ value }}" {% if filtros.estado == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Tipo</label>
+          <select name="tipo" class="form-select">
+            <option value="">Todos</option>
+            {% for value, label in tipos_mantenimiento %}
+              <option value="{{ value }}" {% if filtros.tipo == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3"></div>
+        <div class="col-md-3">
+          <label class="form-label">Desde</label>
+          <input type="date" name="fecha_desde" value="{{ filtros.fecha_desde }}" class="form-control" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Hasta</label>
+          <input type="date" name="fecha_hasta" value="{{ filtros.fecha_hasta }}" class="form-control" />
+        </div>
+        <div class="col-md-6 d-flex align-items-end gap-2">
+          <button type="submit" class="btn btn-primary">Aplicar</button>
+          <a href="{% url 'flota:lista_mantenimientos' %}" class="btn btn-outline-secondary">Limpiar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header bg-secondary text-white">Lista de Mantenimientos</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th>Vehículo</th>
+              <th>Tipo</th>
+              <th>Estado</th>
+              <th>Fecha Programada</th>
+              <th>Fecha Fin</th>
+              <th>Kilometraje</th>
+              <th>Costo Total</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in mantenimientos %}
+            <tr>
+              <td>
+                <div class="fw-bold">{{ m.vehiculo.numero_placa }}</div>
+                <small class="text-muted">{{ m.vehiculo.marca }} {{ m.vehiculo.modelo }}</small>
+              </td>
+              <td>{{ m.get_tipo_mantenimiento_display }}</td>
+              <td><span class="badge bg-info">{{ m.get_estado_display }}</span></td>
+              <td>{{ m.fecha_programada|date:"d/m/Y" }}</td>
+              <td>{% if m.fecha_fin %}{{ m.fecha_fin|date:"d/m/Y H:i" }}{% else %}-{% endif %}</td>
+              <td class="text-end">{{ m.kilometraje_actual }}</td>
+              <td class="text-end">${{ m.costo_total|floatformat:0 }}</td>
+              <td>
+                <div class="btn-group" role="group">
+                  <a href="{% url 'flota:detalle_mantenimiento' m.id %}" class="btn btn-sm btn-outline-primary">Ver</a>
+                  {% if m.estado == 'programado' %}
+                    <a href="{% url 'flota:completar_mantenimiento' m.id %}" class="btn btn-sm btn-outline-success">Completar</a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="8" class="text-center py-4 text-muted">Sin mantenimientos</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% if mantenimientos.has_other_pages %}
+    <div class="card-footer">
+      <nav aria-label="Paginación">
+        <ul class="pagination justify-content-center mb-0">
+          {% if mantenimientos.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ mantenimientos.previous_page_number }}">«</a></li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">«</span></li>
+          {% endif %}
+          {% for num in mantenimientos.paginator.page_range %}
+            {% if mantenimientos.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > mantenimientos.number|add:'-3' and num < mantenimientos.number|add:'3' %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+          {% endfor %}
+          {% if mantenimientos.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ mantenimientos.next_page_number }}">»</a></li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">»</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

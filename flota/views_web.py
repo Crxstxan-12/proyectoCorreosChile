@@ -14,47 +14,46 @@ from conductores.models import Conductor
 @login_required
 def dashboard_flota(request):
     """Dashboard principal de gestión de flota"""
-    
     # Estadísticas generales
     total_vehiculos = Vehiculo.objects.count()
-    vehiculos_operativos = Vehiculo.objects.filter(estado='operativo').count()
-    vehiculos_mantenimiento = Vehiculo.objects.filter(estado='en_mantenimiento').count()
+    vehiculos_disponibles = Vehiculo.objects.filter(estado='disponible').count()
+    vehiculos_en_uso = Vehiculo.objects.filter(estado='en_uso').count()
+    vehiculos_operativos = vehiculos_disponibles + vehiculos_en_uso
+    vehiculos_mantenimiento = Vehiculo.objects.filter(estado='mantenimiento').count()
     vehiculos_fuera_servicio = Vehiculo.objects.filter(estado='fuera_servicio').count()
-    
+
     # Mantenimientos
     hoy = timezone.now().date()
     fecha_limite = hoy + timedelta(days=7)
-    
-    mantenimientos_pendientes = MantenimientoVehiculo.objects.filter(estado='pendiente').count()
+
+    mantenimientos_pendientes = MantenimientoVehiculo.objects.filter(estado='programado').count()
     mantenimientos_proximos_7_dias = MantenimientoVehiculo.objects.filter(
-        estado='pendiente',
+        estado='programado',
         fecha_programada__lte=fecha_limite
     ).count()
-    
+
     # Costos del mes actual
     primer_dia_mes = hoy.replace(day=1)
     costo_mantenimiento_mes = MantenimientoVehiculo.objects.filter(
-        fecha_realizacion__gte=primer_dia_mes,
-        estado='completado'
-    ).aggregate(total=Sum('costo_mano_obra'))['total'] or 0
-    
-    # Consumo promedio de combustible
-    promedio_consumo = Vehiculo.objects.filter(
-        consumo_combustible_promedio__gt=0
-    ).aggregate(promedio=Avg('consumo_combustible_promedio'))['promedio'] or 0
-    
-    # Vehículos que requieren mantenimiento
-    vehiculos_requieren_mantenimiento = Vehiculo.objects.filter(
-        Q(estado_mantenimiento='mantenimiento_pendiente') |
-        Q(estado_mantenimiento='atrasado')
-    ).select_related('tipo', 'conductor_asignado__usuario')[:10]
-    
+        estado='completado',
+        fecha_fin__date__gte=primer_dia_mes
+    ).aggregate(total=Sum('costo_total'))['total'] or 0
+
+    # Consumo promedio
+    promedio_consumo = Vehiculo.objects.aggregate(promedio=Avg('consumo_promedio_km'))['promedio'] or 0
+
+    # Vehículos que requieren mantenimiento (por km o fecha)
+    vehiculos_requieren_mantenimiento = Vehiculo.objects.filter(es_activo=True).filter(
+        Q(proximo_mantenimiento_km__isnull=False, proximo_mantenimiento_km__lte=F('kilometraje_actual')) |
+        Q(proximo_mantenimiento_fecha__isnull=False, proximo_mantenimiento_fecha__lte=hoy)
+    ).select_related('tipo_vehiculo', 'conductor_asignado__usuario')[:10]
+
     # Mantenimientos próximos
     mantenimientos_proximos = MantenimientoVehiculo.objects.filter(
-        estado='pendiente',
+        estado='programado',
         fecha_programada__lte=fecha_limite
-    ).select_related('vehiculo__tipo').order_by('fecha_programada')[:10]
-    
+    ).select_related('vehiculo__tipo_vehiculo').order_by('fecha_programada')[:10]
+
     context = {
         'total_vehiculos': total_vehiculos,
         'vehiculos_operativos': vehiculos_operativos,
@@ -63,11 +62,12 @@ def dashboard_flota(request):
         'mantenimientos_pendientes': mantenimientos_pendientes,
         'mantenimientos_proximos_7_dias': mantenimientos_proximos_7_dias,
         'costo_mantenimiento_mes': costo_mantenimiento_mes,
-        'promedio_consumo_combustible': round(promedio_consumo, 2),
+        'promedio_consumo_combustible': round(promedio_consumo or 0, 2),
         'vehiculos_requieren_mantenimiento': vehiculos_requieren_mantenimiento,
         'mantenimientos_proximos': mantenimientos_proximos,
+        'today': hoy,
     }
-    
+
     return render(request, 'flota/dashboard_flota.html', context)
 
 
@@ -76,7 +76,7 @@ def lista_vehiculos(request):
     """Lista de vehículos con filtros"""
     
     # Obtener vehículos con relaciones
-    vehiculos = Vehiculo.objects.select_related('tipo', 'conductor_asignado__usuario').all()
+    vehiculos = Vehiculo.objects.select_related('tipo_vehiculo', 'conductor_asignado__usuario').all()
     
     # Filtros
     estado = request.GET.get('estado')
@@ -85,21 +85,25 @@ def lista_vehiculos(request):
     
     tipo = request.GET.get('tipo')
     if tipo:
-        vehiculos = vehiculos.filter(tipo_id=tipo)
+        vehiculos = vehiculos.filter(tipo_vehiculo_id=tipo)
     
     conductor = request.GET.get('conductor')
     if conductor:
         vehiculos = vehiculos.filter(conductor_asignado_id=conductor)
     
+    # Filtro de mantenimiento: mostrar solo los que requieren mantenimiento
     mantenimiento = request.GET.get('mantenimiento')
-    if mantenimiento:
-        vehiculos = vehiculos.filter(estado_mantenimiento=mantenimiento)
+    if mantenimiento == 'requiere':
+        vehiculos = vehiculos.filter(
+            Q(proximo_mantenimiento_km__isnull=False, proximo_mantenimiento_km__lte=F('kilometraje_actual')) |
+            Q(proximo_mantenimiento_fecha__isnull=False, proximo_mantenimiento_fecha__lte=timezone.now().date())
+        )
     
     # Búsqueda
     search = request.GET.get('search')
     if search:
         vehiculos = vehiculos.filter(
-            Q(patente__icontains=search) |
+            Q(numero_placa__icontains=search) |
             Q(marca__icontains=search) |
             Q(modelo__icontains=search) |
             Q(numero_chasis__icontains=search)
@@ -111,7 +115,7 @@ def lista_vehiculos(request):
     vehiculos_page = paginator.get_page(page)
     
     # Opciones para filtros
-    tipos_vehiculo = TipoVehiculo.objects.filter(activo=True)
+    tipos_vehiculo = TipoVehiculo.objects.filter(es_activo=True)
     conductores = Conductor.objects.select_related('usuario').all()
     
     context = {
@@ -119,7 +123,6 @@ def lista_vehiculos(request):
         'tipos_vehiculo': tipos_vehiculo,
         'conductores': conductores,
         'estados_vehiculo': Vehiculo.ESTADO_VEHICULO,
-        'estados_mantenimiento': Vehiculo.ESTADO_MANTENIMIENTO,
         'filtros': {
             'estado': estado,
             'tipo': tipo,
@@ -137,12 +140,12 @@ def detalle_vehiculo(request, vehiculo_id):
     """Detalle de un vehículo específico"""
     
     vehiculo = get_object_or_404(
-        Vehiculo.objects.select_related('tipo', 'conductor_asignado__usuario'),
+        Vehiculo.objects.select_related('tipo_vehiculo', 'conductor_asignado__usuario'),
         id=vehiculo_id
     )
     
     # Mantenimientos del vehículo
-    mantenimientos = vehiculo.mantenimientos.select_related('vehiculo__tipo').order_by('-fecha_realizacion')[:10]
+    mantenimientos = vehiculo.mantenimientos.select_related('vehiculo__tipo_vehiculo').order_by('-fecha_realizacion')[:10]
     
     # Mantenimientos pendientes
     mantenimientos_pendientes = vehiculo.mantenimientos.filter(
@@ -243,20 +246,20 @@ def programar_mantenimiento(request, vehiculo_id):
         tipo_mantenimiento = request.POST.get('tipo_mantenimiento')
         descripcion = request.POST.get('descripcion')
         fecha_programada = request.POST.get('fecha_programada')
+        titulo = request.POST.get('titulo') or f"Mantenimiento {tipo_mantenimiento} - {vehiculo.numero_placa}"
         
         if tipo_mantenimiento and fecha_programada:
             try:
                 mantenimiento = MantenimientoVehiculo.objects.create(
                     vehiculo=vehiculo,
                     tipo_mantenimiento=tipo_mantenimiento,
-                    descripcion=descripcion,
-                    fecha_programada=fecha_programada,
-                    estado='pendiente'
+                    estado='programado',
+                    titulo=titulo,
+                    descripcion=descripcion or '',
+                    kilometraje_actual=vehiculo.kilometraje_actual,
+                    fecha_programada=datetime.strptime(fecha_programada, '%Y-%m-%d').date(),
+                    costo_mano_obra=0,
                 )
-                
-                # Actualizar estado de mantenimiento del vehículo
-                vehiculo.estado_mantenimiento = 'mantenimiento_pendiente'
-                vehiculo.save()
                 
                 messages.success(request, 'Mantenimiento programado exitosamente')
                 return redirect('flota:detalle_vehiculo', vehiculo_id=vehiculo.id)
@@ -279,7 +282,7 @@ def lista_mantenimientos(request):
     """Lista de mantenimientos con filtros"""
     
     # Obtener mantenimientos con relaciones
-    mantenimientos = MantenimientoVehiculo.objects.select_related('vehiculo__tipo').all()
+    mantenimientos = MantenimientoVehiculo.objects.select_related('vehiculo__tipo_vehiculo').all()
     
     # Filtros
     vehiculo_id = request.GET.get('vehiculo')
@@ -340,24 +343,22 @@ def completar_mantenimiento(request, mantenimiento_id):
         fecha_realizacion = request.POST.get('fecha_realizacion')
         kilometraje_actual = request.POST.get('kilometraje_actual')
         costo_mano_obra = request.POST.get('costo_mano_obra', 0)
-        duracion_dias = request.POST.get('duracion_dias', 1)
         descripcion_trabajo = request.POST.get('descripcion_trabajo_realizado', '')
         
         if fecha_realizacion and kilometraje_actual:
             try:
-                mantenimiento.fecha_realizacion = datetime.strptime(fecha_realizacion, '%Y-%m-%d').date()
+                mantenimiento.fecha_fin = datetime.strptime(fecha_realizacion, '%Y-%m-%d')
                 mantenimiento.kilometraje_actual = int(kilometraje_actual)
                 mantenimiento.costo_mano_obra = float(costo_mano_obra)
-                mantenimiento.duracion_dias = int(duracion_dias)
-                mantenimiento.descripcion_trabajo_realizado = descripcion_trabajo
+                mantenimiento.trabajo_realizado = descripcion_trabajo
                 mantenimiento.estado = 'completado'
                 mantenimiento.save()
                 
                 # Actualizar el vehículo
                 vehiculo = mantenimiento.vehiculo
-                vehiculo.ultimo_mantenimiento = mantenimiento.fecha_realizacion
+                vehiculo.fecha_ultimo_mantenimiento = mantenimiento.fecha_fin.date()
                 vehiculo.kilometraje_actual = mantenimiento.kilometraje_actual
-                vehiculo.estado_mantenimiento = 'en_servicio'
+                vehiculo.kilometraje_ultimo_mantenimiento = mantenimiento.kilometraje_actual
                 vehiculo.save()
                 
                 messages.success(request, 'Mantenimiento completado exitosamente')
@@ -380,7 +381,7 @@ def detalle_mantenimiento(request, mantenimiento_id):
     """Detalle de mantenimiento"""
     
     mantenimiento = get_object_or_404(
-        MantenimientoVehiculo.objects.select_related('vehiculo__tipo'),
+        MantenimientoVehiculo.objects.select_related('vehiculo__tipo_vehiculo'),
         id=mantenimiento_id
     )
     
@@ -406,7 +407,7 @@ def lista_repuestos(request):
     """Lista de repuestos con filtros"""
     
     # Obtener repuestos con relaciones
-    repuestos = RepuestoVehiculo.objects.select_related('tipo_vehiculo').all()
+    repuestos = RepuestoVehiculo.objects.all()
     
     # Filtros
     tipo_vehiculo = request.GET.get('tipo_vehiculo')
@@ -432,11 +433,20 @@ def lista_repuestos(request):
     repuestos_page = paginator.get_page(page)
     
     # Opciones para filtros
-    tipos_vehiculo = TipoVehiculo.objects.filter(activo=True)
-    
+    # Estadísticas simples
+    total_repuestos = RepuestoVehiculo.objects.count()
+    stock_bajo = RepuestoVehiculo.objects.filter(cantidad_stock__lte=F('cantidad_minima')).count()
+    # Valor total del stock
+    valor_total = sum([r.valor_total_stock for r in RepuestoVehiculo.objects.all()])
+
     context = {
         'repuestos': repuestos_page,
-        'tipos_vehiculo': tipos_vehiculo,
+        'estadisticas': {
+            'total_repuestos': total_repuestos,
+            'stock_bajo': stock_bajo,
+            'valor_total': valor_total,
+            'stock_optimo': max(total_repuestos - stock_bajo, 0),
+        },
         'filtros': {
             'tipo_vehiculo': tipo_vehiculo,
             'bajo_stock': bajo_stock,
@@ -444,7 +454,7 @@ def lista_repuestos(request):
         }
     }
     
-    return render(request, 'flota/lista_repuestos.html', context)
+    return render(request, 'flota/inventario_repuestos.html', context)
 
 
 @login_required

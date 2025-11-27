@@ -124,11 +124,11 @@
                                 <tbody>
                                     {% for vehiculo in vehiculos_requieren_mantenimiento %}
                                     <tr>
-                                        <td><strong>{{ vehiculo.patente }}</strong></td>
-                                        <td>
+                                            <td><strong>{{ vehiculo.numero_placa }}</strong></td>
+                                            <td>
                                             <div>{{ vehiculo.marca }} {{ vehiculo.modelo }}</div>
-                                            <small class="text-muted">{{ vehiculo.tipo.nombre }}</small>
-                                        </td>
+                                            <small class="text-muted">{{ vehiculo.tipo_vehiculo.nombre }}</small>
+                                            </td>
                                         <td>
                                             {% if vehiculo.conductor_asignado %}
                                                 {{ vehiculo.conductor_asignado.usuario.get_full_name }}
@@ -136,11 +136,9 @@
                                                 <span class="text-muted">Sin asignar</span>
                                             {% endif %}
                                         </td>
-                                        <td>
-                                            <span class="badge bg-danger">
-                                                {{ vehiculo.get_estado_mantenimiento_display }}
-                                            </span>
-                                        </td>
+                                            <td>
+                                            <span class="badge bg-danger">Requiere mantenimiento</span>
+                                            </td>
                                         <td>
                                             <a href="{% url 'flota:detalle_vehiculo' vehiculo.id %}" 
                                                class="btn btn-sm btn-outline-primary">
@@ -189,7 +187,7 @@
                                     {% for mantenimiento in mantenimientos_proximos %}
                                     <tr>
                                         <td>
-                                            <strong>{{ mantenimiento.vehiculo.patente }}</strong>
+                                            <strong>{{ mantenimiento.vehiculo.numero_placa }}</strong>
                                             <br><small class="text-muted">{{ mantenimiento.vehiculo.marca }} {{ mantenimiento.vehiculo.modelo }}</small>
                                         </td>
                                         <td>{{ mantenimiento.get_tipo_mantenimiento_display }}</td>

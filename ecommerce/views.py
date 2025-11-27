@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils import timezone
 from .models import PlataformaEcommerce, PedidoEcommerce, ProductoPedido, WebhookLog
 from envios.models import Envio, Bulto
@@ -429,10 +429,23 @@ def configurar_plataforma(request):
     
     # GET - Obtener plataformas del usuario
     plataformas = PlataformaEcommerce.objects.filter(usuario=request.user)
+    resumen_estados = (
+        PedidoEcommerce.objects.filter(plataforma__usuario=request.user)
+        .values('estado')
+        .annotate(cantidad=Count('id'))
+        .order_by('-cantidad')
+    )
+    logs_webhook = (
+        WebhookLog.objects.filter(plataforma__usuario=request.user)
+        .select_related('plataforma')
+        .order_by('-creado_en')[:20]
+    )
     
     ctx = {
         'plataformas': plataformas,
         'tipos_disponibles': PlataformaEcommerce.PLATAFORMAS,
+        'resumen_estados': resumen_estados,
+        'logs_webhook': logs_webhook,
     }
     
     return render(request, 'ecommerce/configurar.html', ctx)

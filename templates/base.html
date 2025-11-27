@@ -5,13 +5,13 @@
     <meta charset="UTF-8">
     <title>{% block title %}Correos Chile{% endblock %}</title>
     {% load static %}
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="{% static 'css/estilos.css?v=5' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="d-flex flex-column min-vh-100 {% block body_class %}{% endblock %}">
 
-    {% block navbar %}
     <div class="cc-menu-env">
       <div class="cc-topbar">
         <div class="container d-flex justify-content-between">
@@ -19,29 +19,57 @@
         </div>
       </div>
       <nav class="cc-mainnav">
-        <div class="container d-flex align-items-center justify-content-between">
-          <a href="{% url 'home' %}" class="cc-logo"><img src="/static/img/logo_correos_fondo.png" alt="Correos Chile" style="height: 35px; vertical-align: middle;"></a>
-          <ul class="nav cc-nav">
-            <li class="nav-item"><a class="nav-link" href="{% url 'paquetes:dashboard_publico' %}">📦 Seguimiento</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'envios:index' %}">📨 Envíos</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'ecommerce:index' %}">🛜 E-commerce</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'transportista:index' %}">🚚 Transportistas</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'seguimiento:index' %}">📍 Seguimiento</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'reclamos:index' %}">📄 Reclamos</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'notificaciones:index' %}">🔔 Notificaciones</a></li>
+        <div class="container mx-auto px-4 d-flex align-items-center justify-content-between">
+          <a href="{% url 'home' %}" class="cc-logo flex items-center"><img src="{% static 'img/logo_correos_fondo.png' %}" alt="Correos Chile" style="height: 35px; vertical-align: middle;"></a>
+          <ul class="nav cc-nav flex flex-wrap items-center gap-2">
+            <li class="nav-item"><a class="nav-link rounded-full px-4 py-2 hover:bg-white/10 transition" href="{% url 'paquetes:dashboard_publico' %}">📦 Seguimiento</a></li>
+            <li class="nav-item"><a class="nav-link rounded-full px-4 py-2 hover:bg-white/10 transition" href="{% url 'envios:index' %}">📨 Envíos</a></li>
+            <li class="nav-item dropdown">
+              <a class="nav-link rounded-full px-4 py-2 hover:bg-white/10 transition dropdown-toggle" href="{% url 'ecommerce:index' %}" id="ecomDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">🛜 E-commerce</a>
+              <div class="dropdown-menu dropdown-menu-right">
+                <a class="dropdown-item" href="{% url 'ecommerce:index' %}">Pedidos</a>
+                <a class="dropdown-item" href="{% url 'ecommerce:configurar' %}">Configurar</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="{% url 'ecommerce:configurar' %}#estados">Estados</a>
+                <a class="dropdown-item" href="{% url 'ecommerce:configurar' %}#logs">Logs</a>
+              </div>
+            </li>
+            <li class="nav-item"><a class="nav-link rounded-full px-4 py-2 hover:bg-white/10 transition" href="{% url 'transportista:index' %}">🚚 Transportistas</a></li>
+            <li class="nav-item dropdown">
+              <a class="nav-link rounded-full px-4 py-2 hover:bg-white/10 transition dropdown-toggle" href="{% url 'flota:dashboard_flota' %}" id="flotaDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">🛞 Flota</a>
+              <div class="dropdown-menu dropdown-menu-right">
+                <a class="dropdown-item" href="{% url 'flota:dashboard_flota' %}">Dashboard</a>
+                <a class="dropdown-item" href="{% url 'flota:lista_vehiculos' %}">Vehículos</a>
+                <a class="dropdown-item" href="{% url 'flota:lista_mantenimientos' %}">Mantenimientos</a>
+                <a class="dropdown-item" href="{% url 'flota:lista_repuestos' %}">Repuestos</a>
+              </div>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link rounded-full px-4 py-2 hover:bg-white/10 transition" href="{% url 'flota:lista_mantenimientos' %}">
+                🛠 Mantenimientos
+                {% if flota_mantenimientos_programados %}
+                  <span class="badge badge-pill badge-primary ml-1">{{ flota_mantenimientos_programados }}</span>
+                {% endif %}
+                {% if flota_mantenimientos_vencidos %}
+                  <span class="badge badge-pill badge-danger ml-1">!</span>
+                {% endif %}
+              </a>
+            </li>
+            <li class="nav-item"><a class="nav-link rounded-full px-4 py-2 hover:bg-white/10 transition" href="{% url 'seguimiento:index' %}">📍 Seguimiento</a></li>
+            <li class="nav-item"><a class="nav-link rounded-full px-4 py-2 hover:bg-white/10 transition" href="{% url 'reclamos:index' %}">📄 Reclamos</a></li>
+            <li class="nav-item"><a class="nav-link rounded-full px-4 py-2 hover:bg-white/10 transition" href="{% url 'notificaciones:index' %}">🔔 Notificaciones</a></li>
           </ul>
           <div class="d-flex align-items-center">
             {% if user.is_authenticated %}
-              <a class="cc-outline-btn" href="{% url 'usuarios:logout' %}">Salir</a>
+              <a class="cc-outline-btn px-3 py-1 rounded-full hover:bg-white hover:text-red-600 transition" href="{% url 'usuarios:logout' %}">Salir</a>
             {% else %}
-              <a class="cc-outline-btn" href="{% url 'usuarios:login' %}">Ingresar</a>
+              <a class="cc-outline-btn px-3 py-1 rounded-full hover:bg-white hover:text-red-600 transition" href="{% url 'usuarios:login' %}">Ingresar</a>
             {% endif %}
           </div>
         </div>
         <div class="cc-redbar"></div>
       </nav>
     </div>
-    {% endblock %}
 
     <main class="flex-fill">
         <div class="container py-4">

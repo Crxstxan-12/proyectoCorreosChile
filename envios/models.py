@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from transportista.models import Transportista
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
 
 class Envio(models.Model):
     ESTADOS = (
@@ -27,6 +29,22 @@ class Envio(models.Model):
     def __str__(self):
         return f"{self.codigo} - {self.estado}"
 
+    def total_bultos(self):
+        return self.bultos.count()
+
+    def bultos_entregados(self):
+        return self.bultos.filter(entregado=True).count()
+
+    def bultos_pendientes(self):
+        return self.bultos.filter(entregado=False).count()
+
+    def actualizar_estado_por_bultos(self):
+        total = self.total_bultos()
+        entregados = self.bultos_entregados()
+        if total > 0 and entregados == total and self.estado != 'entregado':
+            self.estado = 'entregado'
+            self.save(update_fields=['estado', 'actualizado_en'])
+
 class Bulto(models.Model):
     envio = models.ForeignKey(Envio, on_delete=models.CASCADE, related_name="bultos")
     codigo_barras = models.CharField(max_length=100)
@@ -41,3 +59,23 @@ class Bulto(models.Model):
 
     def __str__(self):
         return f"{self.envio.codigo} - {self.codigo_barras}"
+
+@receiver(post_save, sender=Bulto)
+def actualizar_envio_por_bulto_guardado(sender, instance, **kwargs):
+    envio = instance.envio
+    total = envio.bultos.count()
+    entregados = envio.bultos.filter(entregado=True).count()
+    if total > 0 and entregados == total and envio.estado != 'entregado':
+        envio.estado = 'entregado'
+        envio.save(update_fields=['estado', 'actualizado_en'])
+
+@receiver(post_delete, sender=Bulto)
+def actualizar_envio_por_bulto_eliminado(sender, instance, **kwargs):
+    envio = instance.envio
+    total = envio.bultos.count()
+    if total == 0:
+        return
+    entregados = envio.bultos.filter(entregado=True).count()
+    if entregados == total and envio.estado != 'entregado':
+        envio.estado = 'entregado'
+        envio.save(update_fields=['estado', 'actualizado_en'])

@@ -38,7 +38,7 @@ class VehiculoViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        queryset = Vehiculo.objects.select_related('tipo', 'conductor_asignado__usuario')
+        queryset = Vehiculo.objects.select_related('tipo_vehiculo', 'conductor_asignado__usuario')
         
         # Filtros
         estado = self.request.query_params.get('estado')
@@ -140,7 +140,7 @@ class MantenimientoVehiculoViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        queryset = MantenimientoVehiculo.objects.select_related('vehiculo__tipo')
+        queryset = MantenimientoVehiculo.objects.select_related('vehiculo__tipo_vehiculo')
         
         # Filtros
         vehiculo = self.request.query_params.get('vehiculo')

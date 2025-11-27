@@ -15,12 +15,12 @@
                         <p class="text-purple-100">Gestione el inventario de repuestos y piezas de vehículos</p>
                     </div>
                     <div class="flex space-x-4">
-                        <a href="{% url 'flota:agregar_repuesto' %}" 
+                        <a href="#" 
                            class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition-colors">
                             <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
-                            Agregar Repuesto
+                            Nuevo repuesto
                         </a>
                         <div class="bg-white bg-opacity-20 rounded-full p-3">
                             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,28 +166,28 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                                                {{ repuesto.get_categoria_display }}
+                                                —
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900">{{ repuesto.cantidad_disponible }}</div>
-                                            <div class="text-sm text-gray-500">{{ repuesto.unidad_medida }}</div>
+                                            <div class="text-sm text-gray-900">{{ repuesto.cantidad_stock }}</div>
+                                            <div class="text-sm text-gray-500">unidades</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ repuesto.stock_minimo }}
+                                            {{ repuesto.cantidad_minima }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             ${{ repuesto.precio_unitario|floatformat:2 }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ repuesto.proveedor|default:"No especificado" }}
+                                            {{ repuesto.proveedor_principal|default:"No especificado" }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            {% if repuesto.cantidad_disponible <= 0 %}
+                                            {% if repuesto.cantidad_stock <= 0 %}
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
                                                     Agotado
                                                 </span>
-                                            {% elif repuesto.cantidad_disponible <= repuesto.stock_minimo %}
+                                            {% elif repuesto.cantidad_stock <= repuesto.cantidad_minima %}
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
                                                     Stock Bajo
                                                 </span>
@@ -199,9 +199,6 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div class="flex space-x-2">
-                                                <a href="{% url 'flota:editar_repuesto' repuesto.id %}" class="text-indigo-600 hover:text-indigo-900">
-                                                    Editar
-                                                </a>
                                                 <button onclick="actualizarStock({{ repuesto.id }}, '{{ repuesto.nombre }}')" class="text-green-600 hover:text-green-900">
                                                     Actualizar Stock
                                                 </button>
@@ -278,11 +275,11 @@
                         <h3 class="mt-2 text-sm font-medium text-gray-900">No hay repuestos registrados</h3>
                         <p class="mt-1 text-sm text-gray-500">Comience agregando repuestos al inventario.</p>
                         <div class="mt-6">
-                            <a href="{% url 'flota:agregar_repuesto' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700">
+                            <a href="#" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700">
                                 <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                 </svg>
-                                Agregar Repuesto
+                                Nuevo repuesto
                             </a>
                         </div>
                     </div>
@@ -300,18 +297,16 @@
             <form id="stockForm" class="space-y-4">
                 {% csrf_token %}
                 <div>
-                    <label for="cantidad_nueva" class="block text-sm font-medium text-gray-700 mb-2">Nueva Cantidad</label>
-                    <input type="number" id="cantidad_nueva" name="cantidad_nueva" min="0" required
+                    <label for="cantidad" class="block text-sm font-medium text-gray-700 mb-2">Cantidad</label>
+                    <input type="number" id="cantidad" name="cantidad" min="1" required
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                 </div>
                 <div>
-                    <label for="motivo" class="block text-sm font-medium text-gray-700 mb-2">Motivo del Cambio</label>
-                    <select id="motivo" name="motivo" required
+                    <label for="tipo" class="block text-sm font-medium text-gray-700 mb-2">Operación</label>
+                    <select id="tipo" name="tipo" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                        <option value="compra">Compra</option>
-                        <option value="uso">Uso en Mantenimiento</option>
-                        <option value="ajuste">Ajuste de Inventario</option>
-                        <option value="devolucion">Devolución</option>
+                        <option value="sumar">Sumar</option>
+                        <option value="restar">Restar</option>
                     </select>
                 </div>
                 <div>
@@ -355,19 +350,19 @@ document.getElementById('stockForm').addEventListener('submit', function(e) {
     const formData = new FormData(this);
     formData.append('repuesto_id', repuestoIdActual);
     
-    fetch(`/flota/api/repuestos/${repuestoIdActual}/actualizar-stock/`, {
+    fetch(`/flota/api/repuestos/${repuestoIdActual}/actualizar_stock/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': '{{ csrf_token }}',
         },
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
+    .then(async (response) => {
+        if (response.ok) {
             location.reload();
         } else {
-            alert('Error al actualizar el stock: ' + data.error);
+            const data = await response.json().catch(() => ({}));
+            alert('Error al actualizar el stock' + (data.error ? ': ' + data.error : ''));
         }
     })
     .catch(error => {

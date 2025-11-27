@@ -36,7 +36,7 @@
                 {% if filtros.estado %} Estado: {{ filtros.estado }} {% endif %}
                 {% if filtros.tipo %} Tipo: {{ filtros.tipo }} {% endif %}
                 {% if filtros.conductor %} Conductor: {{ filtros.conductor }} {% endif %}
-                {% if filtros.mantenimiento %} Mantenimiento: {{ filtros.mantenimiento }} {% endif %}
+                {% if filtros.mantenimiento == 'requiere' %} Requiere mantenimiento {% endif %}
                 {% if filtros.search %} Búsqueda: "{{ filtros.search }}" {% endif %}
                 <a href="{% url 'flota:lista_vehiculos' %}" class="btn btn-sm btn-outline-dark ms-2">Limpiar filtros</a>
             </div>
@@ -65,7 +65,7 @@
                                     <th>Conductor Asignado</th>
                                     <th>Estado</th>
                                     <th>Kilometraje</th>
-                                    <th>Estado Mant.</th>
+                                    <th>Mantenimiento</th>
                                     <th>Último Mant.</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -74,14 +74,14 @@
                                 {% for vehiculo in vehiculos %}
                                 <tr>
                                     <td>
-                                        <strong class="text-primary">{{ vehiculo.patente }}</strong>
+                                        <strong class="text-primary">{{ vehiculo.numero_placa }}</strong>
                                     </td>
                                     <td>
                                         <div class="fw-bold">{{ vehiculo.marca }} {{ vehiculo.modelo }}</div>
-                                        <small class="text-muted">Año: {{ vehiculo.anio }}</small>
+                                        <small class="text-muted">Año: {{ vehiculo.año_fabricacion }}</small>
                                     </td>
                                     <td>
-                                        <span class="badge bg-secondary">{{ vehiculo.tipo.nombre }}</span>
+                                        <span class="badge bg-secondary">{{ vehiculo.tipo_vehiculo.nombre }}</span>
                                     </td>
                                     <td>
                                         {% if vehiculo.conductor_asignado %}
@@ -100,15 +100,20 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if vehiculo.estado == 'operativo' %}
+                                        {% if vehiculo.estado == 'disponible' %}
                                             <span class="badge bg-success">
                                                 <i class="fas fa-check-circle me-1"></i>
-                                                {{ vehiculo.get_estado_display }}
+                                                Disponible
                                             </span>
-                                        {% elif vehiculo.estado == 'en_mantenimiento' %}
+                                        {% elif vehiculo.estado == 'en_uso' %}
+                                            <span class="badge bg-primary">
+                                                <i class="fas fa-road me-1"></i>
+                                                En uso
+                                            </span>
+                                        {% elif vehiculo.estado == 'mantenimiento' %}
                                             <span class="badge bg-warning">
                                                 <i class="fas fa-tools me-1"></i>
-                                                {{ vehiculo.get_estado_display }}
+                                                En mantenimiento
                                             </span>
                                         {% else %}
                                             <span class="badge bg-danger">
@@ -124,28 +129,23 @@
                                         </div>
                                     </td>
                                     <td>
-                                        {% if vehiculo.estado_mantenimiento == 'en_servicio' %}
-                                            <span class="badge bg-success">
-                                                <i class="fas fa-check me-1"></i>
-                                                {{ vehiculo.get_estado_mantenimiento_display }}
-                                            </span>
-                                        {% elif vehiculo.estado_mantenimiento == 'mantenimiento_pendiente' %}
-                                            <span class="badge bg-warning">
+                                        {% if vehiculo.necesita_mantenimiento %}
+                                            <span class="badge bg-danger">
                                                 <i class="fas fa-exclamation-triangle me-1"></i>
-                                                {{ vehiculo.get_estado_mantenimiento_display }}
+                                                Requiere mantenimiento
                                             </span>
                                         {% else %}
-                                            <span class="badge bg-danger">
-                                                <i class="fas fa-times me-1"></i>
-                                                {{ vehiculo.get_estado_mantenimiento_display }}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>
+                                                En servicio
                                             </span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if vehiculo.ultimo_mantenimiento %}
+                                        {% if vehiculo.fecha_ultimo_mantenimiento %}
                                             <div class="text-center">
-                                                <div>{{ vehiculo.ultimo_mantenimiento|date:"d/m/Y" }}</div>
-                                                {% with dias_desde=vehiculo.ultimo_mantenimiento|timesince %}
+                                                <div>{{ vehiculo.fecha_ultimo_mantenimiento|date:"d/m/Y" }}</div>
+                                                {% with dias_desde=vehiculo.fecha_ultimo_mantenimiento|timesince %}
                                                     <small class="text-muted">Hace {{ dias_desde }}</small>
                                                 {% endwith %}
                                             </div>

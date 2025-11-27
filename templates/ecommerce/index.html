@@ -5,12 +5,17 @@
 
 {% block content %}
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h3 mb-0">Integración E-commerce</h1>
         <a href="{% url 'ecommerce:configurar' %}" class="btn btn-primary">
             <i class="fas fa-cog"></i> Configurar Plataforma
         </a>
     </div>
+
+    <ul class="nav nav-pills mb-4">
+        <li class="nav-item"><a class="nav-link active" href="{% url 'ecommerce:index' %}"><i class="fas fa-list"></i> Pedidos</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'ecommerce:configurar' %}"><i class="fas fa-sliders-h"></i> Configurar</a></li>
+    </ul>
 
     <!-- Estadísticas -->
     <div class="row mb-4">

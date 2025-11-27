@@ -5,6 +5,15 @@
 
 {% block content %}
 <div class="container-fluid">
+    <div class="mb-2">
+        <a href="#estados" class="btn btn-sm btn-outline-light">Estados</a>
+        <a href="#logs" class="btn btn-sm btn-outline-light">Logs</a>
+        <a href="#webhooks" class="btn btn-sm btn-outline-light">Webhooks</a>
+    </div>
+    <ul class="nav nav-pills mb-3">
+        <li class="nav-item"><a class="nav-link" href="{% url 'ecommerce:index' %}"><i class="fas fa-list"></i> Pedidos</a></li>
+        <li class="nav-item"><a class="nav-link active" href="{% url 'ecommerce:configurar' %}"><i class="fas fa-sliders-h"></i> Configurar</a></li>
+    </ul>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Configurar Plataformas E-commerce</h1>
         <a href="{% url 'ecommerce:index' %}" class="btn btn-outline-secondary">
@@ -147,8 +156,68 @@
             {% endif %}
         </div>
     </div>
-</div>
+    </div>
 
+    <!-- Resumen de estados -->
+    <div id="estados" class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Resumen de Estados</h5>
+        </div>
+        <div class="card-body">
+            {% if resumen_estados %}
+            <div class="row">
+                {% for r in resumen_estados %}
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <div class="h6 text-muted">{{ r.estado|title }}</div>
+                            <div class="h3">{{ r.cantidad }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-muted">Sin datos</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Logs de Webhook -->
+    <div id="logs" class="card mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Logs de Webhook</h5>
+            <a href="#webhooks" class="btn btn-sm btn-outline-secondary">Ver URL de Webhook</a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Plataforma</th>
+                            <th>Evento</th>
+                            <th>Nivel</th>
+                            <th>Mensaje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs_webhook %}
+                        <tr>
+                            <td>{{ log.creado_en|date:"d/m/Y H:i" }}</td>
+                            <td>{{ log.plataforma.nombre }}</td>
+                            <td>{{ log.evento_tipo }}</td>
+                            <td class="text-capitalize">{{ log.nivel }}</td>
+                            <td>{{ log.mensaje }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center">Sin registros</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 <!-- Modal para mostrar URL de webhook -->
 <div class="modal fade" id="webhookModal" tabindex="-1">
     <div class="modal-dialog modal-lg">

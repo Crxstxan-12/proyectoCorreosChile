@@ -7,25 +7,28 @@
 <div class="login-container">
   <div class="login-card">
     <div class="card">
-      <div class="card-header bg-danger text-white">Iniciar Sesión</div>
-      <div class="card-body">
+      <div class="card-header bg-danger text-white text-center">Iniciar Sesión</div>
+      <div class="card-body text-center">
         {% if form.non_field_errors %}
           <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
         {% endif %}
-        <form method="post" novalidate>
+        <form method="post" novalidate class="mx-auto" style="max-width: 420px;">
           {% csrf_token %}
           {{ form.non_field_errors }}
-          <div class="form-group">
+          <div class="form-group text-center">
             <label for="id_username">Usuario</label>
             {{ form.username }}
             {% for e in form.username.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
           </div>
-          <div class="form-group">
+          <div class="form-group text-center">
             <label for="id_password">Contraseña</label>
             {{ form.password }}
             {% for e in form.password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
           </div>
           <button type="submit" class="btn btn-danger">Entrar</button>
+          <div class="mt-3">
+            <small>¿No tienes cuenta? <a href="{% url 'usuarios:register' %}">Crear cuenta</a></small>
+          </div>
         </form>
       </div>
     </div>

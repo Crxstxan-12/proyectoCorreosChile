@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
 from .models import Perfil
 from django.db.models import Case, When, IntegerField
@@ -109,4 +109,24 @@ def funcionalidades_pdf(request):
     if not request.user.is_authenticated:
         return redirect('usuarios:login')
     return render(request, 'usuarios/funcionalidades.html', {'fecha': timezone.now()})
+
+def register_view(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        # Estilizar campos
+        for name, field in form.fields.items():
+            field.widget.attrs.update({'class': 'form-control'})
+        if form.is_valid():
+            user = form.save()
+            user.email = (request.POST.get('email') or '').strip()
+            user.first_name = (request.POST.get('first_name') or '').strip()
+            user.last_name = (request.POST.get('last_name') or '').strip()
+            user.save()
+            login(request, user)
+            return redirect('usuarios:dashboard')
+    else:
+        form = UserCreationForm()
+        for name, field in form.fields.items():
+            field.widget.attrs.update({'class': 'form-control'})
+    return render(request, 'usuarios/register.html', {'form': form})
 

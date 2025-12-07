@@ -31,6 +31,8 @@ class Perfil(models.Model):
         null=True,
         blank=True
     )  # Foto opcional del perfil
+    intentos_fallidos = models.PositiveIntegerField(default=0)
+    bloqueado_hasta = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.username} - {self.rol}"
@@ -39,3 +41,16 @@ class Perfil(models.Model):
 def crear_perfil_usuario(sender, instance, created, **kwargs):
     if created:
         Perfil.objects.get_or_create(user=instance, defaults={'rol': 'usuario'})
+
+
+class SecurityEvent(models.Model):
+    usuario = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    ruta = models.CharField(max_length=255)
+    metodo = models.CharField(max_length=10)
+    ip = models.GenericIPAddressField(null=True, blank=True)
+    status = models.PositiveIntegerField()
+    detalle = models.TextField(blank=True, null=True)
+    ocurrido_en = models.DateTimeField(default=None, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.status} {self.metodo} {self.ruta}"

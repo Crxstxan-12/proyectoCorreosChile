@@ -25,6 +25,11 @@ class Envio(models.Model):
     costo = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
+    fecha_estimada_entrega = models.DateTimeField(null=True, blank=True)
+    eta_actualizado_en = models.DateTimeField(null=True, blank=True)
+    eta_km_restante = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    destino_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    destino_lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 
     def __str__(self):
         return f"{self.codigo} - {self.estado}"

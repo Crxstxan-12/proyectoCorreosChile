@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Sandbox Status{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h5 mb-0">Sandbox: últimos estados recibidos</h1>
+    <a class="btn btn-light btn-sm" href="{% url 'ecommerce:mis_pedidos' %}">Mis pedidos</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead><tr><th>Fecha</th><th>Order</th><th>Status</th><th>Tracking</th><th>Datos</th></tr></thead>
+      <tbody>
+        {% for l in logs %}
+        <tr>
+          <td>{{ l.creado_en }}</td>
+          <td>{{ l.datos_recibidos.order_number|default:l.datos_recibidos.order_id }}</td>
+          <td>{{ l.datos_recibidos.status }}</td>
+          <td>{{ l.datos_recibidos.tracking_code }}</td>
+          <td><code style="font-size:.9em">{{ l.datos_recibidos|safe }}</code></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted">Sin datos</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

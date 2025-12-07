@@ -154,8 +154,13 @@
                             <td>
                                 <div class="btn-group" role="group">
                                     {% if pedido.estado == 'pendiente' %}
-                                        <button type="button" class="btn btn-sm btn-success" onclick="procesarPedido({{ pedido.id }})">
+                                        <button type="button" class="btn btn-sm btn-success btn-procesar" data-pedido-id="{{ pedido.id }}">
                                             <i class="fas fa-check"></i> Procesar
+                                        </button>
+                                    {% endif %}
+                                    {% if pedido.envio %}
+                                        <button type="button" class="btn btn-sm btn-outline-primary btn-asignar" data-pedido-id="{{ pedido.id }}">
+                                            <i class="fas fa-truck"></i> Asignar
                                         </button>
                                     {% endif %}
                                     <a href="{% url 'envios:index' %}?q={{ pedido.numero_orden }}" class="btn btn-sm btn-outline-secondary">
@@ -207,28 +212,86 @@
 
 {% block extra_js %}
 <script>
-function procesarPedido(pedidoId) {
-    if (confirm('¿Marcar este pedido como procesado?')) {
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.btn-procesar').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const pedidoId = this.getAttribute('data-pedido-id');
+      if (confirm('¿Marcar este pedido como procesado?')) {
         fetch(`/ecommerce/procesar/${pedidoId}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'Content-Type': 'application/json',
-            },
+          method: 'POST',
+          headers: { 'X-CSRFToken': getCSRF(), 'Content-Type': 'application/json' },
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'ok') {
-                location.reload();
-            } else {
-                alert('Error al procesar el pedido');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al procesar el pedido');
-        });
+        .then(r=>r.json())
+        .then(data=>{ if(data.status==='ok'){ location.reload(); } else { alert('Error al procesar el pedido'); }})
+        .catch(()=>alert('Error al procesar el pedido'))
+      }
+    })
+  })
+
+  document.querySelectorAll('.btn-asignar').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const pedidoId = this.getAttribute('data-pedido-id');
+      abrirAsignarTransportista(pedidoId)
+    })
+  })
+})
+
+let asignarModal;
+function abrirAsignarTransportista(pedidoId){
+    document.getElementById('asignarPedidoId').value = pedidoId;
+    var el = document.getElementById('asignarTransportistaModal');
+    if (window.bootstrap && window.bootstrap.Modal) {
+        asignarModal = new bootstrap.Modal(el);
+        asignarModal.show();
+    } else if (window.$ && $(el).modal) {
+        $(el).modal('show');
     }
+}
+
+function enviarAsignacion(){
+    const pedidoId = document.getElementById('asignarPedidoId').value;
+    const tid = document.getElementById('transportistaSelect').value;
+    fetch(`/ecommerce/asignar_transportista/${pedidoId}/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCSRF(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transportista_id: tid })
+    }).then(r=>r.json()).then(data=>{
+        if(data.status==='ok'){ location.reload(); }
+        else { alert(data.error||'Error'); }
+    }).catch(()=>alert('Error al asignar'))
+}
+function getCSRF(){
+  try{
+    const m = document.cookie.split('; ').find(r=>r.startsWith('csrftoken='));
+    return m ? m.split('=')[1] : '';
+  }catch(e){return ''}
 }
 </script>
 {% endblock %}
+
+{% block extra_css %}{% endblock %}
+
+<!-- Modal asignar transportista -->
+<div class="modal fade" id="asignarTransportistaModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Asignar Transportista</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar"><span aria-hidden="true">&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="asignarPedidoId">
+        <label class="form-label">Transportista</label>
+        <select id="transportistaSelect" class="form-select">
+          {% for t in transportistas %}
+          <option value="{{ t.id }}">{{ t.nombre }} ({{ t.rut }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="enviarAsignacion()">Asignar</button>
+      </div>
+    </div>
+  </div>
+</div>

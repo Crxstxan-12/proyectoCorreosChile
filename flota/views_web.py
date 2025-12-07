@@ -406,17 +406,22 @@ def detalle_mantenimiento(request, mantenimiento_id):
 def lista_repuestos(request):
     """Lista de repuestos con filtros"""
     
-    # Obtener repuestos con relaciones
     repuestos = RepuestoVehiculo.objects.all()
     
     # Filtros
-    tipo_vehiculo = request.GET.get('tipo_vehiculo')
-    if tipo_vehiculo:
-        repuestos = repuestos.filter(tipo_vehiculo_id=tipo_vehiculo)
-    
-    bajo_stock = request.GET.get('bajo_stock')
-    if bajo_stock == 'true':
-        repuestos = repuestos.filter(cantidad_stock__lte=models.F('cantidad_minima'))
+    marca = (request.GET.get('marca') or '').strip()
+    if marca:
+        repuestos = repuestos.filter(marca__icontains=marca)
+    proveedor = (request.GET.get('proveedor') or '').strip()
+    if proveedor:
+        repuestos = repuestos.filter(proveedor_principal__icontains=proveedor)
+    stock_status = (request.GET.get('stock_status') or '').strip()
+    if stock_status == 'bajo':
+        repuestos = repuestos.filter(cantidad_stock__lte=F('cantidad_minima'))
+    elif stock_status == 'optimo':
+        repuestos = repuestos.filter(cantidad_stock__gt=F('cantidad_minima'))
+    elif stock_status == 'agotado':
+        repuestos = repuestos.filter(cantidad_stock__lte=0)
     
     # Búsqueda
     search = request.GET.get('search')
@@ -426,18 +431,24 @@ def lista_repuestos(request):
             Q(nombre__icontains=search) |
             Q(descripcion__icontains=search)
         )
+
+    sort = (request.GET.get('sort') or '').strip()
+    if sort in ['nombre','precio','stock']:
+        sort_map = {'nombre': 'nombre', 'precio': 'precio_unitario', 'stock': 'cantidad_stock'}
+        repuestos = repuestos.order_by(sort_map[sort])
     
     # Paginación
     paginator = Paginator(repuestos, 20)
     page = request.GET.get('page')
     repuestos_page = paginator.get_page(page)
     
-    # Opciones para filtros
-    # Estadísticas simples
+    # Estadísticas y opciones
     total_repuestos = RepuestoVehiculo.objects.count()
     stock_bajo = RepuestoVehiculo.objects.filter(cantidad_stock__lte=F('cantidad_minima')).count()
     # Valor total del stock
     valor_total = sum([r.valor_total_stock for r in RepuestoVehiculo.objects.all()])
+    marcas = list(RepuestoVehiculo.objects.exclude(marca='').values_list('marca', flat=True).distinct().order_by('marca'))
+    proveedores = list(RepuestoVehiculo.objects.exclude(proveedor_principal='').values_list('proveedor_principal', flat=True).distinct().order_by('proveedor_principal'))
 
     context = {
         'repuestos': repuestos_page,
@@ -448,10 +459,14 @@ def lista_repuestos(request):
             'stock_optimo': max(total_repuestos - stock_bajo, 0),
         },
         'filtros': {
-            'tipo_vehiculo': tipo_vehiculo,
-            'bajo_stock': bajo_stock,
+            'marca': marca,
+            'proveedor': proveedor,
+            'stock_status': stock_status,
             'search': search,
-        }
+            'sort': sort,
+        },
+        'marcas': marcas,
+        'proveedores': proveedores,
     }
     
     return render(request, 'flota/inventario_repuestos.html', context)

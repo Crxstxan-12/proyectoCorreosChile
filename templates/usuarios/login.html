@@ -9,9 +9,11 @@
     <div class="card">
       <div class="card-header bg-danger text-white text-center">Iniciar Sesión</div>
       <div class="card-body text-center">
+        {% if blocked_msg %}<div class="alert alert-warning" role="alert">{{ blocked_msg }}</div>{% endif %}
         {% if form.non_field_errors %}
           <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
         {% endif %}
+        {% if login_warning %}<div class="alert alert-info" role="alert">{{ login_warning }}</div>{% endif %}
         <form method="post" novalidate class="mx-auto" style="max-width: 420px;">
           {% csrf_token %}
           {{ form.non_field_errors }}

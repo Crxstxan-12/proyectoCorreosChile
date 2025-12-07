@@ -44,6 +44,12 @@
       </form>
     </div>
     <div class="card-body">
+      <div class="d-flex justify-content-between mb-3">
+        <div>
+          <a class="btn btn-primary btn-sm" href="{% url 'reclamos:nuevo' %}">Nuevo reclamo</a>
+          <a class="btn btn-light btn-sm ml-2" href="{% url 'reclamos:mis' %}">Mis reclamos</a>
+        </div>
+      </div>
       <div class="d-flex justify-content-end mb-2">
         <a class="btn btn-outline-secondary btn-sm mr-2" href="?q={{ q }}&estado={{ estado }}&tipo={{ tipo }}&desde={{ desde }}&hasta={{ hasta }}&export=csv">Exportar CSV</a>
         <a class="btn btn-outline-secondary btn-sm" href="?q={{ q }}&estado={{ estado }}&tipo={{ tipo }}&desde={{ desde }}&hasta={{ hasta }}&export=xls">Exportar XLS</a>

@@ -87,6 +87,7 @@ class SeguimientoPaqueteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Paquete
         fields = ['codigo_seguimiento', 'estado', 'estado_display', 'fecha_creacion',
+                  'ultima_actualizacion', 'fecha_estimada_entrega', 'fecha_entrega_real', 'quien_recibe',
                   'remitente', 'destinatario', 'peso_kg', 'monto_total',
                   'historial', 'ruta']
 

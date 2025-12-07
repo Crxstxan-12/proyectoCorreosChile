@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Nuevo Pedido - E-commerce{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 class="h3 mb-3">Crear nuevo pedido</h1>
+  {% if created %}
+    <div class="alert alert-success">Pedido creado exitosamente. Número: <strong>{{ pedido.numero_orden }}</strong></div>
+    <a class="btn btn-primary" href="{% url 'ecommerce:mis_pedidos' %}">Ver mis pedidos</a>
+  {% else %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Número de orden (opcional)</label>
+          <input type="text" name="numero_orden" class="form-control" placeholder="USR-...">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Moneda</label>
+          <input type="text" name="moneda" class="form-control" value="CLP">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Cliente</label>
+          <input type="text" name="cliente_nombre" class="form-control" required>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Email</label>
+          <input type="email" name="cliente_email" class="form-control" required>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Teléfono</label>
+          <input type="text" name="cliente_telefono" class="form-control">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Total</label>
+          <input type="number" step="0.01" name="total" class="form-control" required>
+        </div>
+        <div class="col-12 mb-3">
+          <label class="form-label">Dirección de entrega</label>
+          <textarea name="direccion_entrega" class="form-control" rows="2" required></textarea>
+        </div>
+        <div class="col-12 mb-3">
+          <label class="form-label">Items (sku,nombre,cantidad,precio por línea)</label>
+          <textarea name="items_text" class="form-control" rows="4" placeholder="SKU1,Producto 1,2,15990"></textarea>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Crear pedido</button>
+      <a href="{% url 'ecommerce:index' %}" class="btn btn-light">Volver</a>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

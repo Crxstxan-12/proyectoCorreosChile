@@ -27,9 +27,18 @@
     </div>
   </div>
 
-  <div class="card mb-3">
+    <div class="card mb-3">
     <div class="card-header d-flex align-items-center justify-content-between">
-      <div>Envíos</div>
+      <div class="d-flex align-items-center">
+        <div class="mr-3">Envíos</div>
+        <div class="legend d-none d-md-flex">
+          <span class="badge estado-pendiente">Pendiente</span>
+          <span class="badge estado-transito">En tránsito</span>
+          <span class="badge estado-entregado">Entregado</span>
+          <span class="badge estado-devuelto">Devuelto</span>
+          <span class="badge estado-cancelado">Cancelado</span>
+        </div>
+      </div>
       <form class="form-inline toolbar" method="get">
         <div class="input-group mr-2">
           <div class="input-group-prepend"><span class="input-group-text">Buscar</span></div>
@@ -45,82 +54,99 @@
         </select>
         <input type="text" class="form-control mr-2" name="origen" value="{{ origen }}" placeholder="Origen">
         <input type="text" class="form-control mr-2" name="destino" value="{{ destino }}" placeholder="Destino">
+        <select name="transportista_id" class="form-control mr-2">
+          <option value="" {% if not transportista_id %}selected{% endif %}>Todos</option>
+          {% for t in transportistas %}
+          <option value="{{ t.id }}" {% if transportista_id == t.id|stringformat:"i" %}selected{% endif %}>{{ t.nombre }}</option>
+          {% endfor %}
+        </select>
         <button type="submit" class="btn btn-primary mr-2">Filtrar</button>
         <a href="{% url 'envios:index' %}" class="btn btn-light">Limpiar</a>
       </form>
     </div>
       <div class="card-body">
-        <div class="mb-3 p-3 border rounded">
-          <form class="form-inline toolbar" method="get">
-            <div class="input-group mr-2">
-              <div class="input-group-prepend"><span class="input-group-text">Buscar</span></div>
-              <input type="text" class="form-control" name="q" value="{{ q }}" placeholder="Código, destinatario o dirección">
+        <div class="mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="h6 mb-0">Asignar transportista</div>
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-toggle="collapse" data-target="#assignCollapse" aria-expanded="true" aria-controls="assignCollapse">Mostrar/Ocultar</button>
+          </div>
+          <div id="assignCollapse" class="collapse show p-3 border rounded">
+          <form method="post" class="form-row">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="assign_transportista">
+            <div class="form-group col-md-4">
+              <label>Código de envío</label>
+              <input type="text" class="form-control" name="envio_codigo" placeholder="Código de envío">
             </div>
-            <select name="estado" class="form-control mr-2">
-              <option value="" {% if not estado %}selected{% endif %}>Todos</option>
-              <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
-              <option value="en_transito" {% if estado == 'en_transito' %}selected{% endif %}>En tránsito</option>
-              <option value="entregado" {% if estado == 'entregado' %}selected{% endif %}>Entregado</option>
-              <option value="devuelto" {% if estado == 'devuelto' %}selected{% endif %}>Devuelto</option>
-              <option value="cancelado" {% if estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
-            </select>
-            <input type="text" class="form-control mr-2" name="origen" value="{{ origen }}" placeholder="Origen">
-            <input type="text" class="form-control mr-2" name="destino" value="{{ destino }}" placeholder="Destino">
-            <select name="transportista_id" class="form-control mr-2">
-              <option value="" {% if not transportista_id %}selected{% endif %}>Todos</option>
-              {% for t in transportistas %}
-              <option value="{{ t.id }}" {% if transportista_id == t.id|stringformat:"i" %}selected{% endif %}>{{ t.nombre }}</option>
-              {% endfor %}
-            </select>
-            <button type="submit" class="btn btn-primary mr-2">Filtrar</button>
-            <a href="{% url 'envios:index' %}" class="btn btn-light">Limpiar</a>
+            <div class="form-group col-md-6">
+              <label>Transportista</label>
+              <select class="form-control" name="transportista_id">
+                {% for t in transportistas %}
+                <option value="{{ t.id }}">{{ t.nombre }} ({{ t.rut }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group col-md-2 d-flex align-items-end">
+              <button type="submit" class="btn btn-primary btn-block">Asignar</button>
+            </div>
           </form>
+          {% if assigned %}<div class="alert alert-success mt-2">Transportista asignado</div>{% endif %}
+          {% if assigned_error %}<div class="alert alert-danger mt-2">{{ assigned_error }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="h6 mb-0">Procesar códigos de bultos</div>
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-toggle="collapse" data-target="#scanCollapse" aria-expanded="true" aria-controls="scanCollapse">Mostrar/Ocultar</button>
+          </div>
+          <div id="scanCollapse" class="collapse show p-3 border rounded">
+          <form id="scan-form" class="form-row">
+            {% csrf_token %}
+            <div class="form-group col-md-4">
+              <label>Código de envío</label>
+              <input type="text" class="form-control" id="scan-envio" name="envio_codigo" placeholder="Código de envío" data-toggle="tooltip" title="Ej: EC-XXXX">
+            </div>
+            <div class="form-group col-md-6">
+              <label>Códigos de barras <span class="badge badge-light" data-toggle="tooltip" title="Pegue múltiples códigos, uno por línea">?</span></label>
+              <textarea class="form-control" id="scan-codigos" name="codigos_text" rows="2" placeholder="Uno por línea" data-toggle="tooltip" title="Pegue múltiples códigos separados por saltos de línea"></textarea>
+            </div>
+            <input type="hidden" id="scan-lat" name="lat">
+            <input type="hidden" id="scan-lng" name="lng">
+            <input type="hidden" id="scan-ubicacion" name="ubicacion">
+            <div class="form-group col-md-2 d-flex align-items-end">
+              <div class="btn-group w-100" role="group">
+                <button type="button" id="scan-geo" class="btn btn-light">Ubicación</button>
+                <button type="submit" class="btn btn-primary">Procesar</button>
+              </div>
+            </div>
+          </form>
+          <div id="scan-result" class="mt-2"></div>
+          </div>
         </div>
         <div class="mb-3 p-3 border rounded">
           <form method="post">
             {% csrf_token %}
-            <input type="hidden" name="action" value="assign_transportista">
+            <input type="hidden" name="action" value="set_eta">
             <div class="form-row align-items-end">
               <div class="col-md-3 mb-2">
                 <label class="mb-1">Código de envío</label>
                 <input type="text" class="form-control" name="envio_codigo" placeholder="Código de envío">
               </div>
-              <div class="col-md-5 mb-2">
-                <label class="mb-1">Transportista</label>
-                <select class="form-control" name="transportista_id">
-                  {% for t in transportistas %}
-                  <option value="{{ t.id }}">{{ t.nombre }} ({{ t.rut }})</option>
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="col-md-2 mb-2 d-flex align-items-stretch">
-                <button type="submit" class="btn btn-primary">Asignar</button>
-              </div>
-            </div>
-          </form>
-          {% if assigned %}<div class="alert alert-success mt-2">Transportista asignado</div>{% endif %}
-          {% if assigned_error %}<div class="alert alert-danger mt-2">{{ assigned_error }}</div>{% endif %}
-        </div>
-        <div class="mb-3 p-3 border rounded">
-          <form id="scan-form">
-            <div class="form-row">
               <div class="col-md-3 mb-2">
-                <input type="text" class="form-control" id="scan-envio" name="envio_codigo" placeholder="Código de envío">
+                <label class="mb-1">Fecha estimada</label>
+                <input type="date" class="form-control" name="fecha_estimada">
               </div>
-              <div class="col-md-7 mb-2">
-                <textarea class="form-control" id="scan-codigos" name="codigos_text" rows="2" placeholder="Códigos de barras, uno por línea"></textarea>
+              <div class="col-md-2 mb-2">
+                <label class="mb-1">Hora</label>
+                <input type="time" class="form-control" name="hora_estimada">
               </div>
-              <input type="hidden" id="scan-lat" name="lat">
-              <input type="hidden" id="scan-lng" name="lng">
-              <input type="hidden" id="scan-ubicacion" name="ubicacion">
               <div class="col-md-2 mb-2 d-flex align-items-stretch">
-                <button type="button" id="scan-geo" class="btn btn-light mr-2">Ubicación</button>
-                <button type="submit" class="btn btn-primary">Procesar</button>
+                <button type="submit" class="btn btn-primary">Guardar ETA</button>
               </div>
             </div>
-            {% csrf_token %}
           </form>
-          <div id="scan-result" class="mt-2"></div>
+          {% if eta_saved %}<div class="alert alert-success mt-2">ETA actualizado</div>{% endif %}
+          {% if eta_error %}<div class="alert alert-danger mt-2">{{ eta_error }}</div>{% endif %}
         </div>
         <div class="d-flex justify-content-end mb-2">
           <a class="btn btn-outline-secondary btn-sm mr-2" href="?q={{ q }}&estado={{ estado }}&origen={{ origen }}&destino={{ destino }}&transportista_id={{ transportista_id }}&export=csv">Exportar CSV</a>
@@ -140,12 +166,13 @@
                 <th>Bultos</th>
                 <th>Peso (kg)</th>
                 <th>Costo</th>
+                <th>ETA</th>
                 <th>Creado</th>
               </tr>
             </thead>
             <tbody>
             {% for e in envios %}
-            <tr>
+            <tr class="row-{{ e.estado }}">
               <td>{{ e.codigo }}</td>
               <td>
                 {% if e.estado == 'pendiente' %}
@@ -169,6 +196,7 @@
               <td>{{ e.bultos.count }}</td>
               <td>{{ e.peso_kg|default:"-" }}</td>
               <td>{{ e.costo|default:"-" }}</td>
+              <td>{% if e.fecha_estimada_entrega %}{{ e.fecha_estimada_entrega|date:"d/m H:i" }}{% else %}-{% endif %}</td>
               <td>{{ e.creado_en }}</td>
             </tr>
             {% empty %}
@@ -200,3 +228,21 @@
 </div>
 {% endblock %}
 {% block extra_js %}<script src="{% static 'envios/app.js' %}"></script>{% endblock %}
+<div aria-live="polite" aria-atomic="true" style="position: fixed; bottom: 20px; right: 20px; z-index: 1080" class="d-flex justify-content-end align-items-end">
+  <div id="scanToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="3000">
+    <div class="toast-header">
+      <strong class="mr-auto">Ubicación</strong>
+      <small>Ahora</small>
+      <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Cerrar"><span aria-hidden="true">&times;</span></button>
+    </div>
+    <div class="toast-body"></div>
+  </div>
+  <div id="scanToast2" class="toast ml-2" role="alert" aria-live="assertive" aria-atomic="true" data-delay="3500">
+    <div class="toast-header">
+      <strong class="mr-auto">Procesado</strong>
+      <small>Listo</small>
+      <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Cerrar"><span aria-hidden="true">&times;</span></button>
+    </div>
+    <div class="toast-body"></div>
+  </div>
+</div>

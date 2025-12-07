@@ -7,6 +7,9 @@ from .models import Reclamo
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from usuarios.models import Perfil
+from envios.models import Envio
+import time
+import random
 
 @login_required
 def index(request):
@@ -100,10 +103,28 @@ def detalle(request, pk):
             return redirect('reclamos:detalle', pk=r.id)
         nuevo_estado = (request.POST.get('estado') or '').strip()
         respuesta = (request.POST.get('respuesta') or '').strip() or None
+        prev = r.estado
         if nuevo_estado in estados:
             r.estado = nuevo_estado
         r.respuesta = respuesta
         r.save()
+        # Notificación al cambiar estado
+        try:
+            if prev != r.estado and r.usuario:
+                from notificaciones.models import Notificacion, PreferenciaNotificacion
+                pref, _ = PreferenciaNotificacion.objects.get_or_create(usuario=r.usuario)
+                canales = pref.canales_activos() or ["web"]
+                for c in canales:
+                    Notificacion.objects.create(
+                        titulo=f"Reclamo actualizado: {r.numero}",
+                        mensaje=f"Tu reclamo cambió a '{r.estado}'. {('Respuesta: ' + r.respuesta) if r.respuesta else ''}",
+                        tipo="info",
+                        canal=c,
+                        usuario=r.usuario,
+                        envio=r.envio,
+                    )
+        except Exception:
+            pass
         saved = True
         return redirect('reclamos:detalle', pk=r.id)
     ctx = {
@@ -150,3 +171,51 @@ def reporte_pdf(request):
         'fecha': timezone.now(),
     }
     return render(request, 'reclamos/report.html', ctx)
+
+@login_required
+def nuevo(request):
+    tipos = [t[0] for t in Reclamo.TIPOS]
+    estados = [e[0] for e in Reclamo.ESTADOS]
+    error = ''
+    created = False
+    if request.method == 'POST':
+        envio_codigo = (request.POST.get('envio_codigo') or '').strip()
+        tipo = (request.POST.get('tipo') or '').strip()
+        descripcion = (request.POST.get('descripcion') or '').strip()
+        try:
+            if not tipo or tipo not in tipos:
+                raise ValueError('Tipo inválido')
+            if not descripcion:
+                raise ValueError('Descripción requerida')
+            envio = None
+            if envio_codigo:
+                envio = Envio.objects.get(codigo=envio_codigo)
+            numero = f"R-{int(time.time())}-{random.randint(100,999)}"
+            r = Reclamo.objects.create(
+                numero=numero,
+                tipo=tipo,
+                estado='abierto',
+                descripcion=descripcion,
+                usuario=request.user,
+                envio=envio,
+            )
+            created = True
+            return redirect('reclamos:detalle', pk=r.id)
+        except Envio.DoesNotExist:
+            error = 'Envío no encontrado'
+        except ValueError as e:
+            error = str(e)
+        except Exception:
+            error = 'Error al crear reclamo'
+    ctx = {
+        'tipos': tipos,
+        'estados': estados,
+        'error': error,
+        'created': created,
+    }
+    return render(request, 'reclamos/nuevo.html', ctx)
+
+@login_required
+def mis(request):
+    queryset = Reclamo.objects.filter(usuario=request.user).order_by('-creado_en')
+    return render(request, 'reclamos/mis.html', {'reclamos': queryset})

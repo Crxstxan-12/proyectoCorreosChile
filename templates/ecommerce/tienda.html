@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Tienda{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'ecommerce/store.css' %}">{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="store-hero w-100 d-flex justify-content-between align-items-center">
+      <div>
+        <div class="h4 mb-1">Tienda CorreosChile</div>
+        <div class="small">Elige la empresa y arma tu pedido</div>
+      </div>
+      <div class="brand-logos d-flex align-items-center">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/1/1a/Shopify_logo_2018.svg" alt="Shopify">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon">
+      </div>
+    </div>
+    <a href="{% url 'ecommerce:mis_pedidos' %}" class="btn btn-light">Mis pedidos</a>
+  </div>
+  <form method="post" id="tiendaForm">
+    {% csrf_token %}
+    <div class="card mb-3">
+      <div class="card-header">Selecciona empresa</div>
+      <div class="card-body">
+        <div class="btn-group" role="group">
+          <input type="radio" class="btn-check" name="empresa" id="optShopify" value="shopify" checked>
+          <label class="btn btn-outline-primary" for="optShopify">Shopify</label>
+          <input type="radio" class="btn-check" name="empresa" id="optAmazon" value="amazon">
+          <label class="btn btn-outline-success" for="optAmazon">Amazon</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" id="productosRow">
+      {% for key, lista in productos.items %}
+      <div class="col-12 mb-3 productos-{{ key }}" {% if key != 'shopify' %}style="display:none"{% endif %}>
+        <div class="card">
+          <div class="card-header">Productos {{ key|title }}</div>
+          <div class="card-body">
+            <div class="row">
+              {% for p in lista %}
+              <div class="col-md-4 mb-3">
+                <div class="card h-100 product-card">
+                  <div class="card-body">
+                    <img src="{{ p.img }}" alt="{{ p.nombre }}" class="mb-2" onerror="this.src='{% static 'img/logo_correos.png' %}'">
+                    <div class="font-weight-bold mb-1">{{ p.nombre }}</div>
+                    <div class="text-muted mb-2">SKU {{ p.sku }}</div>
+                    <div class="price mb-3">${{ p.precio }}</div>
+                    <div class="input-group">
+                      <div class="input-group-prepend"><button class="btn btn-outline-secondary btn-dec" type="button">-</button></div>
+                      <input type="number" min="0" class="form-control qty-input text-center" data-sku="{{ p.sku }}" data-nombre="{{ p.nombre }}" data-precio="{{ p.precio }}" value="0">
+                      <div class="input-group-append"><button class="btn btn-outline-secondary btn-inc" type="button">+</button></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header">Datos del cliente</div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-4"><input type="text" class="form-control" name="cliente_nombre" placeholder="Nombre" required></div>
+          <div class="col-md-4"><input type="email" class="form-control" name="cliente_email" placeholder="Email" required></div>
+          <div class="col-md-4"><input type="text" class="form-control" name="cliente_telefono" placeholder="Teléfono"></div>
+          <div class="col-md-12 mt-2"><input type="text" class="form-control" name="direccion_entrega" placeholder="Dirección de entrega" required></div>
+        </div>
+      </div>
+    </div>
+
+    <input type="hidden" name="items_text" id="items_text">
+    <input type="hidden" name="total" id="total">
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="h5">Total: <span id="totalLabel">$0</span></div>
+      <button type="submit" class="btn btn-primary">Confirmar pedido</button>
+    </div>
+    {% if error %}<div class="alert alert-danger mt-3">{{ error }}</div>{% endif %}
+    {% if created %}<div class="alert alert-success mt-3">Pedido creado</div>{% endif %}
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showEmpresa(key){
+  document.querySelectorAll('[class^="productos-"]').forEach(function(el){ el.style.display='none' })
+  var el = document.querySelector('.productos-' + key); if(el) el.style.display='block'
+}
+document.addEventListener('DOMContentLoaded', function(){
+  document.getElementById('optShopify').addEventListener('change', function(){ if(this.checked) showEmpresa('shopify') })
+  document.getElementById('optAmazon').addEventListener('change', function(){ if(this.checked) showEmpresa('amazon') })
+  var form = document.getElementById('tiendaForm');
+  function recalc(){
+    var lines = []; var total = 0;
+    document.querySelectorAll('.qty-input').forEach(function(inp){
+      var qty = parseInt(inp.value||'0');
+      if(qty>0){
+        var sku = inp.getAttribute('data-sku');
+        var nombre = inp.getAttribute('data-nombre');
+        var precio = parseFloat(inp.getAttribute('data-precio'));
+        lines.push([sku,nombre,qty,precio].join(','));
+        total += qty * precio;
+      }
+    })
+    document.getElementById('items_text').value = lines.join('\n');
+    document.getElementById('total').value = total.toFixed(2);
+    document.getElementById('totalLabel').textContent = '$' + Math.round(total).toString();
+  }
+  document.querySelectorAll('.qty-input').forEach(function(inp){ inp.addEventListener('input', recalc) })
+  document.querySelectorAll('.btn-inc').forEach(function(b){ b.addEventListener('click', function(){ var i=this.parentNode.parentNode.querySelector('.qty-input'); i.value = (parseInt(i.value||'0')+1); i.dispatchEvent(new Event('input')); }) })
+  document.querySelectorAll('.btn-dec').forEach(function(b){ b.addEventListener('click', function(){ var i=this.parentNode.parentNode.querySelector('.qty-input'); var v = Math.max(0, parseInt(i.value||'0')-1); i.value = v; i.dispatchEvent(new Event('input')); }) })
+  form.addEventListener('submit', function(e){ recalc(); })
+})
+</script>
+{% endblock %}

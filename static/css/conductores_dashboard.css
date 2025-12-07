@@ -1,0 +1,41 @@
+.conductor-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; }
+.estado-badge { padding: 8px 16px; border-radius: 20px; font-weight: bold; text-transform: uppercase; font-size: 12px; }
+.estado-disponible { background-color: #28a745; }
+.estado-en_ruta { background-color: #ffc107; color: #212529; }
+.estado-descanso { background-color: #17a2b8; }
+.estado-fuera_servicio { background-color: #dc3545; }
+.metric-card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center; }
+.metric-number { font-size: 2.5rem; font-weight: bold; color: #667eea; }
+.ruta-progress { background-color: #e9ecef; border-radius: 10px; height: 20px; overflow: hidden; }
+.ruta-progress-bar { background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; border-radius: 10px; transition: width 0.3s ease; }
+.action-btn { border-radius: 25px; padding: 10px 20px; font-weight: bold; margin: 5px; }
+.card-header-custom { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px 10px 0 0 !important; }
+/* Detalle de ruta */
+.ruta-header{background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px; padding:20px; margin-bottom:20px}
+.estado-badge{padding:8px 16px; border-radius:20px; font-weight:bold; text-transform:uppercase; font-size:12px}
+.estado-pendiente{background-color:#6c757d}
+.estado-en_progreso{background-color:#ffc107; color:#212529}
+.estado-completada{background-color:#28a745}
+.envio-card{background:white; border-radius:10px; padding:15px; margin-bottom:15px; box-shadow:0 2px 5px rgba(0,0,0,0.1); border-left:4px solid #007bff}
+.envio-card.entregado{border-left-color:#28a745; background-color:#f8fff8}
+.envio-card.fallido{border-left-color:#dc3545; background-color:#fff8f8}
+.envio-card.pendiente{border-left-color:#ffc107; background-color:#fffbf0}
+.btn-action{border-radius:20px; padding:8px 16px; font-size:12px; margin:2px}
+.map-container{height:300px; background-color:#f8f9fa; border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:20px}
+.progress-custom{height:10px; border-radius:5px}
+.qr-scanner{background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; border-radius:15px; padding:20px; text-align:center; margin-bottom:20px}
+/* Crear incidencia */
+.incidencia-form{background:white; border-radius:15px; padding:30px; box-shadow:0 5px 15px rgba(0,0,0,0.1); margin-bottom:20px}
+.form-header{background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; border-radius:15px 15px 0 0; padding:20px; margin:-30px -30px 30px -30px; text-align:center}
+.tipo-incidencia{border:2px solid #e9ecef; border-radius:10px; padding:15px; margin-bottom:15px; cursor:pointer; transition:all .3s ease}
+.tipo-incidencia:hover{border-color:#667eea; background-color:#f8f9ff}
+.tipo-incidencia.selected{border-color:#667eea; background-color:#f0f4ff; box-shadow:0 0 10px rgba(102,126,234,.3)}
+.prioridad-badge{padding:5px 10px; border-radius:15px; font-size:12px; font-weight:bold}
+.prioridad-baja{background-color:#28a745; color:white}
+.prioridad-media{background-color:#ffc107; color:#212529}
+.prioridad-alta{background-color:#dc3545; color:white}
+.prioridad-urgente{background-color:#6f42c1; color:white}
+.upload-area{border:2px dashed #667eea; border-radius:10px; padding:30px; text-align:center; background-color:#f8f9ff; cursor:pointer; transition:all .3s ease}
+.upload-area:hover{background-color:#f0f4ff; border-color:#5a67d8}
+.btn-submit{background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border:none; color:white; padding:12px 30px; border-radius:25px; font-weight:bold; transition:all .3s ease}
+.btn-submit:hover{transform:translateY(-2px); box-shadow:0 5px 15px rgba(102,126,234,.4); color:white}

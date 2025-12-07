@@ -1,0 +1,19 @@
+/* Hero */
+.public-hero{position:relative;background-size:cover;background-position:center;padding:64px 0}
+.public-hero-light{background:linear-gradient(135deg,#f8fbff 0%,#eef4ff 100%)}
+.hero-title{font-weight:800;color:#27374D;font-size:2.25rem}
+.hero-subtitle{color:#6b7280}
+.btn-public-primary{background:#0d6efd;color:#fff;border:none;font-weight:600}
+.btn-public-primary:hover{background:#0b5ed7;color:#fff}
+.public-hero .form-control{height:48px;border-radius:.5rem}
+.search-card{background:#fff;border:1px solid rgba(13,110,253,.12);box-shadow:0 1rem 2rem rgba(13,110,253,.08);border-radius:.75rem}
+.public-results-section{padding:24px 0}
+/* Cards */
+.card-gradient-gray{background:linear-gradient(135deg,#6c757d,#495057)}
+.card-gradient-green{background:linear-gradient(135deg,#20c997,#0ca678)}
+.card-gradient-yellow{background:linear-gradient(135deg,#ffc107,#ffb100)}
+/* Steps */
+.step-circle{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#f8f9fa,#e9ecef)}
+.dot-blue{display:inline-block;width:10px;height:10px;border-radius:50%;background:#0d6efd}
+/* Footer */
+.public-footer{background:linear-gradient(135deg,#0a58ca,#084298)}

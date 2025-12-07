@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Nuevo Reclamo{% endblock %}
+{% block content %}
+<div class="reclamos-bg rounded p-3 p-md-4 mb-3">
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <div>Crear Reclamo</div>
+      <div>
+        <a class="btn btn-light btn-sm" href="{% url 'reclamos:mis' %}">Mis reclamos</a>
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-row">
+          <div class="form-group col-md-4">
+            <label>Código de envío (opcional)</label>
+            <input type="text" class="form-control" name="envio_codigo" placeholder="Ej: CC-000123">
+          </div>
+          <div class="form-group col-md-4">
+            <label>Tipo</label>
+            <select class="form-control" name="tipo">
+              {% for t in tipos %}
+              <option value="{{ t }}">{{ t }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group col-md-12">
+            <label>Descripción</label>
+            <textarea class="form-control" name="descripcion" rows="4" placeholder="Describe el problema"></textarea>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Crear</button>
+        <a href="{% url 'reclamos:index' %}" class="btn btn-light ml-2">Volver</a>
+      </form>
+      {% if error %}<div class="alert alert-danger mt-3">{{ error }}</div>{% endif %}
+      {% if created %}<div class="alert alert-success mt-3">Reclamo creado</div>{% endif %}
+    </div>
+  </div>
+  <div class="mt-3">
+    <small class="text-muted">Tu reclamo quedará asociado a tu usuario y será visible en "Mis reclamos".</small>
+  </div>
+</div>
+{% endblock %}

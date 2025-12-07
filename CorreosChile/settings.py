@@ -69,6 +69,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',    # Autenticación de usuarios
     'django.contrib.messages.middleware.MessageMiddleware',       # Sistema de mensajes
     'django.middleware.clickjacking.XFrameOptionsMiddleware',     # Protección contra clickjacking
+    'usuarios.middleware.SecurityLogMiddleware',                  # Registro de accesos no autorizados
 ]
 
 
@@ -220,3 +221,15 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 LOGIN_URL = '/usuarios/login/'
 LOGIN_REDIRECT_URL = '/usuarios/'
 LOGOUT_REDIRECT_URL = '/usuarios/login/'
+
+# Seguridad (HTTPS/TLS) configurable por entorno
+from decouple import config
+ENABLE_TLS = config('ENABLE_TLS', default=False, cast=bool)
+SESSION_COOKIE_SECURE = ENABLE_TLS
+CSRF_COOKIE_SECURE = ENABLE_TLS
+SECURE_SSL_REDIRECT = ENABLE_TLS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+if ENABLE_TLS:
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True

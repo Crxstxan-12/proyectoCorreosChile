@@ -1,0 +1,33 @@
+.cc-menu-env{position:fixed;top:0;left:0;right:0;width:100%;z-index:1050;background:#ffffff !important;box-shadow:0 8px 24px rgba(13,110,253,.06);border-bottom:1px solid rgba(13,110,253,.08);transition:transform .2s ease, box-shadow .2s ease;will-change:transform}
+.cc-menu-env.cc-hide{transform:translateY(-100%);opacity:0;pointer-events:none}
+.cc-menu--shrink .cc-topbar{display:none}
+.cc-logo-img{height:56px}
+.cc-menu--shrink .cc-logo-img{height:40px}
+.cc-mainnav{background:#fff !important;border:none}
+.cc-topbar{background:#fff;border-bottom:1px solid rgba(13,110,253,.08);padding:.25rem 0}
+.cc-mainnav{background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%) !important}
+.cc-mainnav .container{padding:.6rem 0}
+.cc-menu--shrink .cc-mainnav .container{padding:.3rem 0}
+.cc-logo{font-weight:700;color:#e30613 !important;text-decoration:none}
+.cc-nav{display:flex;flex-wrap:wrap}
+.cc-nav .nav-item{margin:0 .5rem}
+.cc-mainnav .nav-link{color:#27374D !important;padding:.5rem 1rem;border-radius:999px;font-weight:600;transition:all .15s ease}
+.cc-nav .nav-link:hover{color:#0d6efd !important;background:#eef5ff}
+.cc-nav .nav-link.active{color:#fff !important;background:#0d6efd;box-shadow:0 6px 12px rgba(13,110,253,.18)}
+.cc-mainnav .dropdown-menu{min-width:200px;border:1px solid rgba(13,110,253,.12);border-radius:.75rem;box-shadow:0 1rem 2rem rgba(13,110,253,.12);margin-top:.5rem}
+.cc-mainnav .dropdown-item{color:#343a40;padding:.5rem 1rem;font-weight:500}
+.cc-mainnav .dropdown-item:hover{background:#eef5ff;color:#0d6efd}
+.cc-outline-btn{border:1px solid #0d6efd;color:#0d6efd;padding:.375rem .75rem;border-radius:2rem;text-decoration:none;font-weight:600}
+.cc-outline-btn:hover{background:#0d6efd;color:#fff !important}
+.cc-redbar{display:block;height:3px;background:linear-gradient(90deg,#0d6efd,#6b8ffd)}
+.cc-toplink{color:#fff !important;text-decoration:none;padding-bottom:.25rem}
+.cc-toplink.active{color:#fff;border-bottom:2px solid rgba(255,255,255,.8)}
+.cc-caret{display:inline-block;margin-left:.25rem;border: solid currentColor;border-width: 0 2px 2px 0;padding:2px;transform: rotate(45deg)}
+
+/* Mobile navigation */
+.cc-menu-toggle{padding:.375rem .75rem;border-radius:2rem}
+@media (max-width: 768px){
+  .cc-nav{display:none;flex-direction:column;align-items:flex-start;background:#fff;border-radius:.5rem;box-shadow:0 0.5rem 1rem rgba(0,0,0,.08);padding:.5rem;margin:0}
+  .cc-nav.cc-open{display:block}
+  .cc-nav .nav-item{margin:.25rem 0}
+}

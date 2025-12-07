@@ -1,0 +1,7 @@
+/* estilos tienda e-commerce */
+.store-hero{background:linear-gradient(90deg,#2563eb,#1d4ed8);color:#fff;border-radius:.5rem;padding:1rem 1.25rem;margin-bottom:1rem}
+.brand-logos img{height:28px;margin-right:.5rem;opacity:.95}
+.product-card img{width:100%;height:140px;object-fit:cover;border-radius:.5rem}
+.product-card .price{font-weight:700;color:#0d6efd}
+.qty-input{max-width:120px}
+.store-footer small{color:#666}

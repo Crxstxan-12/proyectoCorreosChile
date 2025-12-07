@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded',function(){
+  if(window.$){ $('[data-toggle="tooltip"]').tooltip({container:'body'}); }
   var form = document.getElementById('scan-form');
   if(!form) return;
   var resultEl = document.getElementById('scan-result');
@@ -27,7 +28,10 @@ document.addEventListener('DOMContentLoaded',function(){
         resultEl.innerHTML = '<div class="alert alert-danger">'+(data.error||'Error')+'</div>';
         return;
       }
-      resultEl.innerHTML = '<div class="alert alert-success">Envío '+data.envio_codigo+': '+data.marcados_entregados+' entregados, '+data.creados+' creados. Estado: '+data.estado_envio+'</div>';
+      var extra = '';
+      if(data.eta && data.eta.eta_label){ extra = ' | ETA: '+data.eta.eta_label+' (~'+data.eta.km_restante+' km)'; }
+      resultEl.innerHTML = '<div class="alert alert-success">Envío '+data.envio_codigo+': '+data.marcados_entregados+' entregados, '+data.creados+' creados. Estado: '+data.estado_envio+extra+'</div>';
+      if(window.$ && $('#scanToast2').length){ $('#scanToast2 .toast-body').text('Procesado envío '+data.envio_codigo+(data.eta && data.eta.eta_label ? ' · ETA '+data.eta.eta_label : '')); $('#scanToast2').toast('show'); }
       document.getElementById('scan-codigos').value='';
     }).catch(function(){
       resultEl.innerHTML = '<div class="alert alert-danger">Error de red</div>';
@@ -54,6 +58,8 @@ document.addEventListener('DOMContentLoaded',function(){
         btnGeo.classList.remove('btn-light');
         btnGeo.classList.add('btn-success');
         btnGeo.textContent = 'Ubicación lista';
+        if(window.$ && $('#scanToast').length){ $('#scanToast .toast-body').text('Coordenadas: '+lat.toFixed(5)+', '+lng.toFixed(5)); $('#scanToast').toast('show'); }
+        else if(resultEl){ resultEl.innerHTML = '<div class="alert alert-info">Coordenadas: '+lat.toFixed(5)+', '+lng.toFixed(5)+'</div>'; }
       }, function(){
         btnGeo.classList.remove('btn-light');
         btnGeo.classList.add('btn-warning');

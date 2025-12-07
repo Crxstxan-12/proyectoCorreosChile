@@ -4,6 +4,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from .models import Paquete, HistorialPaquete, RutaPaquete, TipoPaquete, PuntoEntrega
+from envios.models import Envio
+from seguimiento.models import EventoSeguimiento
 from django.db.models import Q, Count, Sum
 import json
 
@@ -34,22 +36,62 @@ class DashboardPublicoView(TemplateView):
         
         # Búsqueda de paquete si se proporciona código
         codigo_buscado = self.request.GET.get('codigo')
-        paquete_encontrado = None
-        historial_paquete = None
+        pedido_info = None
+        historial_items = None
         
         if codigo_buscado:
             try:
-                paquete_encontrado = Paquete.objects.select_related(
-                    'tipo_paquete'
-                ).get(codigo_seguimiento=codigo_buscado)
-                
-                # Obtener historial del paquete (sin datos sensibles)
-                historial_paquete = HistorialPaquete.objects.filter(
-                    paquete=paquete_encontrado
-                ).order_by('-fecha_cambio')[:10]  # Limitar a últimos 10 estados
-                
+                p = Paquete.objects.select_related('tipo_paquete').get(codigo_seguimiento=codigo_buscado)
+                pedido_info = {
+                    'codigo': p.codigo_seguimiento,
+                    'estado': p.estado,
+                    'tipo_servicio': getattr(p.tipo_paquete, 'nombre', ''),
+                    'fecha_estimada': getattr(p, 'fecha_estimada_entrega', None),
+                    'ultima_actualizacion': getattr(p, 'ultima_actualizacion', None),
+                    'fecha_entrega_real': getattr(p, 'fecha_entrega_real', None),
+                    'quien_recibe': getattr(p, 'quien_recibe', ''),
+                }
+                historial_items = [
+                    {
+                        'estado': h.get_estado_nuevo_display if hasattr(h, 'get_estado_nuevo_display') else h.estado_nuevo,
+                        'ubicacion': h.ubicacion,
+                        'observacion': h.observacion,
+                        'fecha': h.fecha_cambio,
+                    }
+                    for h in HistorialPaquete.objects.filter(paquete=p).order_by('-fecha_cambio')[:10]
+                ]
             except Paquete.DoesNotExist:
-                context['error_busqueda'] = f'No se encontró ningún pedido con el código: {codigo_buscado}'
+                # Fallback: buscar Envío por código
+                try:
+                    e = Envio.objects.get(codigo=codigo_buscado)
+                    last_ev = EventoSeguimiento.objects.filter(envio=e).order_by('-registrado_en').first()
+                    ultima = None
+                    if last_ev:
+                        ultima = last_ev.registrado_en
+                    elif getattr(e, 'eta_actualizado_en', None):
+                        ultima = e.eta_actualizado_en
+                    else:
+                        ultima = e.actualizado_en
+                    pedido_info = {
+                        'codigo': e.codigo,
+                        'estado': e.estado,
+                        'tipo_servicio': 'Envío',
+                        'fecha_estimada': getattr(e, 'fecha_estimada_entrega', None),
+                        'ultima_actualizacion': ultima,
+                        'fecha_entrega_real': None,
+                        'quien_recibe': '',
+                    }
+                    historial_items = [
+                        {
+                            'estado': ev.estado,
+                            'ubicacion': ev.ubicacion,
+                            'observacion': ev.observacion,
+                            'fecha': ev.registrado_en,
+                        }
+                        for ev in EventoSeguimiento.objects.filter(envio=e).order_by('-registrado_en')[:10]
+                    ]
+                except Envio.DoesNotExist:
+                    context['error_busqueda'] = f'No se encontró ningún pedido con el código: {codigo_buscado}'
         
         context.update({
             'total_paquetes': total_paquetes,
@@ -57,8 +99,8 @@ class DashboardPublicoView(TemplateView):
             'paquetes_en_transito': paquetes_en_transito,
             'estados_stats': estados_stats,
             'codigo_buscado': codigo_buscado,
-            'paquete_encontrado': paquete_encontrado,
-            'historial_paquete': historial_paquete,
+            'pedido_info': pedido_info,
+            'historial_items': historial_items,
         })
         
         return context
@@ -204,16 +246,30 @@ class APIBusquedaAjaxView(TemplateView):
                     Q(remitente__nombre_completo__icontains=query) |
                     Q(destinatario__nombre_completo__icontains=query)
                 ).select_related('remitente', 'destinatario')[:5]
-                
+                envios = Envio.objects.filter(
+                    Q(codigo__icontains=query) |
+                    Q(destinatario_nombre__icontains=query) |
+                    Q(origen__icontains=query) |
+                    Q(destino__icontains=query)
+                )[:5]
                 resultados = []
                 for paquete in paquetes:
                     resultados.append({
+                        'tipo': 'paquete',
                         'id': paquete.id,
-                        'codigo_seguimiento': paquete.codigo_seguimiento,
-                        'remitente': paquete.remitente.nombre_completo,
-                        'destinatario': paquete.destinatario.nombre_completo,
+                        'codigo': paquete.codigo_seguimiento,
+                        'titulo': paquete.codigo_seguimiento,
+                        'sub': f"{paquete.remitente.nombre_completo} → {paquete.destinatario.nombre_completo}",
                         'estado': paquete.get_estado_display(),
-                        'fecha_creacion': paquete.fecha_creacion.strftime('%d/%m/%Y')
+                    })
+                for envio in envios:
+                    resultados.append({
+                        'tipo': 'envio',
+                        'id': envio.id,
+                        'codigo': envio.codigo,
+                        'titulo': envio.codigo,
+                        'sub': f"{getattr(envio,'origen','')} → {getattr(envio,'destino','')}",
+                        'estado': envio.estado,
                     })
                 
                 return JsonResponse({'resultados': resultados})

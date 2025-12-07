@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mis Pedidos - E-commerce{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Mis pedidos</h1>
+    <a href="{% url 'ecommerce:nuevo_pedido' %}" class="btn btn-primary">Nuevo pedido</a>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Orden</th>
+              <th>Estado</th>
+              <th>Total</th>
+              <th>Fecha</th>
+              <th>Envío</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in pedidos %}
+            <tr>
+              <td>{{ p.numero_orden }}</td>
+              <td>{{ p.estado|title }}</td>
+              <td>${{ p.total|floatformat:0 }}</td>
+              <td>{{ p.fecha_pedido|date:"d/m/Y H:i" }}</td>
+              <td>
+                {% if p.envio %}
+                <a href="{% url 'envios:index' %}?q={{ p.envio.codigo }}" class="btn btn-sm btn-outline-primary">{{ p.envio.codigo }}</a>
+                {% else %}<span class="text-muted">-</span>{% endif %}
+              </td>
+              <td>
+                {% if p.envio %}
+                <button type="button" class="btn btn-sm btn-outline-primary btn-asignar-usr" data-pedido-id="{{ p.id }}">Asignar transportista</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary btn-reenviar" data-pedido-id="{{ p.id }}">Reenviar estado</button>
+                <button type="button" class="btn btn-sm btn-outline-success btn-probar" data-pedido-id="{{ p.id }}">Probar sync</button>
+                {% else %}
+                <span class="text-muted">Sin envío</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-muted">Sin pedidos</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if page_obj.has_other_pages %}
+      <nav aria-label="Paginación">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+          {% endif %}
+          <li class="page-item active"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+          {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<!-- Modal asignar transportista -->
+<div class="modal fade" id="asignarTransportistaUsrModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Asignar Transportista</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar"><span aria-hidden="true">&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="usrPedidoId">
+        <label class="form-label">Transportista</label>
+        <select id="usrTransportistaSelect" class="form-select">
+          {% for t in transportistas %}
+          <option value="{{ t.id }}">{{ t.nombre }} ({{ t.rut }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="enviarAsignacionUsr()">Asignar</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let usrModal;
+function abrirAsignarTransportistaUsr(pedidoId){
+  document.getElementById('usrPedidoId').value = pedidoId;
+  var el = document.getElementById('asignarTransportistaUsrModal');
+  if (window.bootstrap && window.bootstrap.Modal) { usrModal = new bootstrap.Modal(el); usrModal.show(); }
+  else if (window.$ && $(el).modal) { $(el).modal('show'); }
+}
+function enviarAsignacionUsr(){
+  const pedidoId = document.getElementById('usrPedidoId').value;
+  const tid = document.getElementById('usrTransportistaSelect').value;
+  fetch(`/ecommerce/asignar_transportista/${pedidoId}/`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': getCSRF(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ transportista_id: tid })
+  }).then(r=>r.json()).then(data=>{
+    if(data.status==='ok'){ location.reload(); }
+    else { alert(data.error||'Error'); }
+  }).catch(()=>alert('Error al asignar'))
+}
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.btn-asignar-usr').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      abrirAsignarTransportistaUsr(this.getAttribute('data-pedido-id'))
+    })
+  })
+  document.querySelectorAll('.btn-reenviar').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const pid = this.getAttribute('data-pedido-id');
+      fetch(`/ecommerce/reenviar_estado/${pid}/`, { method:'POST', headers:{'X-CSRFToken': getCSRF()} })
+        .then(r=>r.json()).then(d=>{ if(d.status==='ok'){ alert('Estado reenviado'); } else { alert(d.error||'Error'); } })
+        .catch(()=>alert('Error al reenviar'))
+    })
+  })
+  document.querySelectorAll('.btn-probar').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const pid = this.getAttribute('data-pedido-id');
+      fetch(`/ecommerce/probar_sync/${pid}/`, { method:'POST', headers:{'X-CSRFToken': getCSRF()} })
+        .then(r=>r.json()).then(d=>{ if(d.status==='ok'){ window.location.href = '/ecommerce/sandbox/status'; } else { alert(d.error||'Error'); } })
+        .catch(()=>alert('Error al probar'))
+    })
+  })
+})
+function getCSRF(){
+  try{
+    const m = document.cookie.split('; ').find(r=>r.startsWith('csrftoken='));
+    return m ? m.split('=')[1] : '';
+  }catch(e){return ''}
+}
+</script>
+{% endblock %}

@@ -1,16 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}Funcionalidades · CorreosChile{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/estilos.css' %}">
-<style>
-@media print{ .cc-topbar, .cc-mainnav, .cc-redbar, .btn { display:none !important } }
-.brand{font-weight:700;color:#e30613}
-.meta{color:#666}
-.section-title{font-weight:700;margin-top:1rem}
-.small{color:#666}
-</style>
-{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/estilos.css' %}">{% endblock %}
 {% block content %}
 <div class="container py-3">
   <div class="d-flex align-items-center justify-content-between mb-3">

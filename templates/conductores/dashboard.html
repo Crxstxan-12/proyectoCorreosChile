@@ -4,62 +4,7 @@
 {% block title %}Dashboard Conductor - CorreosChile{% endblock %}
 
 {% block extra_css %}
-<style>
-    .conductor-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 15px;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-    .estado-badge {
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-weight: bold;
-        text-transform: uppercase;
-        font-size: 12px;
-    }
-    .estado-disponible { background-color: #28a745; }
-    .estado-en_ruta { background-color: #ffc107; color: #212529; }
-    .estado-descanso { background-color: #17a2b8; }
-    .estado-fuera_servicio { background-color: #dc3545; }
-    .metric-card {
-        background: white;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
-        text-align: center;
-    }
-    .metric-number {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #667eea;
-    }
-    .ruta-progress {
-        background-color: #e9ecef;
-        border-radius: 10px;
-        height: 20px;
-        overflow: hidden;
-    }
-    .ruta-progress-bar {
-        background: linear-gradient(90deg, #667eea, #764ba2);
-        height: 100%;
-        border-radius: 10px;
-        transition: width 0.3s ease;
-    }
-    .action-btn {
-        border-radius: 25px;
-        padding: 10px 20px;
-        font-weight: bold;
-        margin: 5px;
-    }
-    .card-header-custom {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 10px 10px 0 0 !important;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/conductores_dashboard.css?v=1' %}">
 {% endblock %}
 
 {% block content %}

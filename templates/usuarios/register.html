@@ -3,37 +3,7 @@
 
 {% block title %}Crear cuenta{% endblock %}
 {% block navbar %}{% endblock %}
-{% block extra_css %}
-<style>
-  .auth-bg {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #0ea5e9 0%, #9333ea 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 16px;
-  }
-  .auth-card {
-    background: rgba(255,255,255,0.92);
-    backdrop-filter: saturate(180%) blur(8px);
-    border-radius: 18px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.18);
-    overflow: hidden;
-    width: 100%;
-    max-width: 520px;
-  }
-  .auth-header {
-    background: linear-gradient(90deg, #2563eb, #1d4ed8);
-    color: #fff;
-    padding: 18px 24px;
-    font-weight: 600;
-    text-align: center;
-  }
-  .auth-body { padding: 24px; }
-  .auth-body .form-label { font-weight: 600; }
-  .brand-top { color: #fff; font-weight: 700; text-align: center; margin-bottom: 18px; }
-</style>
-{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'usuarios/style.css' %}">{% endblock %}
 {% block content %}
 <div class="auth-bg">
   <div class="auth-card">

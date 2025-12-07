@@ -3,74 +3,7 @@
 
 {% block title %}Detalle Ruta - {{ ruta.nombre_ruta }} - CorreosChile{% endblock %}
 
-{% block extra_css %}
-<style>
-    .ruta-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 15px;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-    .estado-badge {
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-weight: bold;
-        text-transform: uppercase;
-        font-size: 12px;
-    }
-    .estado-pendiente { background-color: #6c757d; }
-    .estado-en_progreso { background-color: #ffc107; color: #212529; }
-    .estado-completada { background-color: #28a745; }
-    .envio-card {
-        background: white;
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 15px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        border-left: 4px solid #007bff;
-    }
-    .envio-card.entregado {
-        border-left-color: #28a745;
-        background-color: #f8fff8;
-    }
-    .envio-card.fallido {
-        border-left-color: #dc3545;
-        background-color: #fff8f8;
-    }
-    .envio-card.pendiente {
-        border-left-color: #ffc107;
-        background-color: #fffbf0;
-    }
-    .btn-action {
-        border-radius: 20px;
-        padding: 8px 16px;
-        font-size: 12px;
-        margin: 2px;
-    }
-    .map-container {
-        height: 300px;
-        background-color: #f8f9fa;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 20px;
-    }
-    .progress-custom {
-        height: 10px;
-        border-radius: 5px;
-    }
-    .qr-scanner {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 15px;
-        padding: 20px;
-        text-align: center;
-        margin-bottom: 20px;
-    }
-</style>
-{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/conductores_dashboard.css?v=2' %}">{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">

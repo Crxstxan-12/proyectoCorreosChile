@@ -1,5 +1,10 @@
 .table.table td, table.table th{vertical-align:middle}
 .table.table tbody tr:hover{background:#f8f9fa}
+.table.table tbody tr.row-pendiente{border-left:4px solid #d48b00}
+.table.table tbody tr.row-en_transito{border-left:4px solid #0b6fdc}
+.table.table tbody tr.row-entregado{border-left:4px solid #2e7d32}
+.table.table tbody tr.row-devuelto{border-left:4px solid #6b7280}
+.table.table tbody tr.row-cancelado{border-left:4px solid #b00020}
 .envios-bg{background:linear-gradient(135deg,#f8faff 0%,#eef4ff 100%)}
 html, body{height:100%}
 body{background:linear-gradient(135deg,#0b6fdc 0%, #6be1c3 100%)}
@@ -14,6 +19,8 @@ body{background:linear-gradient(135deg,#0b6fdc 0%, #6be1c3 100%)}
 .toolbar .btn{border-radius:10px}
 .table thead th{background-color:#fafafa;font-weight:600}
 .card-header{background:#ffffffd9;font-weight:600;border-bottom:1px solid #e6e6e6;border-top-left-radius:12px;border-top-right-radius:12px}
+.card-header .legend{display:flex;gap:.5rem;align-items:center}
+.legend .badge{font-weight:600;border-radius:9999px;padding:.35rem .6rem}
 .estado-pendiente{background-color:#fff7e6;color:#d48b00}
 .estado-transito{background-color:#e6f4ff;color:#0b6fdc}
 .estado-entregado{background-color:#eaf7ee;color:#2e7d32}
@@ -26,3 +33,5 @@ body{background:linear-gradient(135deg,#0b6fdc 0%, #6be1c3 100%)}
 .envios-bg .border{border-color:#e6e6e6 !important;border-radius:12px}
 .envios-bg .form-inline .form-control{min-width:160px}
 .envios-bg .card-body{padding:1.25rem 1.25rem}
+.quick-actions{display:flex;gap:.5rem;justify-content:flex-end}
+.quick-actions .btn{border-radius:999px}

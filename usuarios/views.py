@@ -52,19 +52,110 @@ def index(request):
     return render(request, 'usuarios/index.html', {'perfiles': perfiles, 'saved_role': saved_role, 'error_role': error_role, 'es_admin': es_admin})
 
 def login_view(request):
+    MAX_INTENTOS = 3
+    login_warning = ''
+    blocked_msg = ''
+    # Recuperar mensajes tras redirección (PRG)
+    ui_state = request.session.pop('login_ui', None)
+    if ui_state:
+        login_warning = ui_state.get('login_warning', '')
+        blocked_msg = ui_state.get('blocked_msg', '')
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         form.fields['username'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Usuario', 'autocomplete': 'username'})
         form.fields['password'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Contraseña', 'autocomplete': 'current-password'})
-        if form.is_valid():
+        username = request.POST.get('username','').strip()
+        from django.contrib.auth.models import User
+        perfil = None
+        try:
+            u = User.objects.filter(username=username).first()
+            perfil = Perfil.objects.filter(user=u).first() if u else None
+        except Exception:
+            perfil = None
+        # Bloqueo temporal
+        from django.utils import timezone
+        session_blocks = request.session.get('login_blocks', {})
+        blocked_until = None
+        if perfil and perfil.bloqueado_hasta and perfil.bloqueado_hasta > timezone.now():
+            blocked_until = perfil.bloqueado_hasta
+        elif session_blocks.get(username):
+            try:
+                blocked_until = timezone.datetime.fromisoformat(session_blocks[username])
+            except Exception:
+                blocked_until = None
+        if blocked_until and blocked_until > timezone.now():
+            blocked_msg = 'Cuenta bloqueada temporalmente por intentos fallidos. Intenta más tarde.'
+            request.session['login_ui'] = {'blocked_msg': blocked_msg}
+            request.session['login_prefill'] = username
+            return redirect('usuarios:login')
+        elif form.is_valid():
             user = form.get_user()
             login(request, user)
+            if perfil:
+                perfil.intentos_fallidos = 0
+                perfil.bloqueado_hasta = None
+                perfil.save(update_fields=['intentos_fallidos','bloqueado_hasta'])
+            attempts = request.session.get('login_attempts', {})
+            if username in attempts:
+                attempts.pop(username)
+                request.session['login_attempts'] = attempts
+            blocks = request.session.get('login_blocks', {})
+            if username in blocks:
+                blocks.pop(username)
+                request.session['login_blocks'] = blocks
             return redirect('usuarios:index')
+        else:
+            # Falló login → incrementar intentos y avisar (sin extender bloqueo al refrescar)
+            from datetime import timedelta
+            if perfil:
+                if not (perfil.bloqueado_hasta and perfil.bloqueado_hasta > timezone.now()):
+                    perfil.intentos_fallidos = (perfil.intentos_fallidos or 0) + 1
+                restantes = max(0, MAX_INTENTOS - (perfil.intentos_fallidos or 0))
+                if restantes > 0:
+                    login_warning = f'Te quedan {restantes} intentos antes de bloquear su cuenta'
+                else:
+                    if not (perfil.bloqueado_hasta and perfil.bloqueado_hasta > timezone.now()):
+                        perfil.bloqueado_hasta = timezone.now() + timedelta(minutes=15)
+                    blocked_msg = 'Cuenta bloqueada por 15 minutos por intentos fallidos'
+                perfil.save(update_fields=['intentos_fallidos','bloqueado_hasta'])
+            else:
+                attempts = request.session.get('login_attempts', {})
+                blocks = request.session.get('login_blocks', {})
+                cur = int(attempts.get(username, 0))
+                # No incrementar si ya está bloqueado
+                blocked = False
+                if blocks.get(username):
+                    try:
+                        bu = timezone.datetime.fromisoformat(blocks[username])
+                        blocked = (bu and bu > timezone.now())
+                    except Exception:
+                        blocked = False
+                if not blocked:
+                    cur += 1
+                attempts[username] = cur
+                request.session['login_attempts'] = attempts
+                restantes = max(0, MAX_INTENTOS - cur)
+                if restantes > 0:
+                    login_warning = f'Te quedan {restantes} intentos antes de bloquear su cuenta'
+                else:
+                    if not blocked:
+                        until = (timezone.now() + timedelta(minutes=15)).isoformat()
+                        blocks[username] = until
+                        request.session['login_blocks'] = blocks
+                    blocked_msg = 'Cuenta bloqueada por 15 minutos por intentos fallidos'
+            request.session['login_ui'] = {'login_warning': login_warning, 'blocked_msg': blocked_msg}
+            request.session['login_prefill'] = username
+            return redirect('usuarios:login')
     else:
         form = AuthenticationForm(request)
         form.fields['username'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Usuario', 'autocomplete': 'username'})
         form.fields['password'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Contraseña', 'autocomplete': 'current-password'})
-    return render(request, 'usuarios/login.html', {'form': form})
+        try:
+            pre = request.session.pop('login_prefill')
+            form.fields['username'].initial = pre
+        except Exception:
+            pass
+    return render(request, 'usuarios/login.html', {'form': form, 'login_warning': login_warning, 'blocked_msg': blocked_msg})
 
 def logout_view(request):
     logout(request)

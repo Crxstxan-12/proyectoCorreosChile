@@ -13,9 +13,14 @@ from django.db.models import Q, Count
 from django.utils import timezone
 from .models import PlataformaEcommerce, PedidoEcommerce, ProductoPedido, WebhookLog
 from envios.models import Envio, Bulto
+from transportista.models import Transportista
 from seguimiento.models import EventoSeguimiento
 from notificaciones.models import Notificacion
 from usuarios.models import Perfil
+from .services import sync_estado_a_plataforma
+from django.conf import settings
+import os
+import json as _json
 
 
 @csrf_exempt
@@ -378,6 +383,7 @@ def index(request):
         'pedidos_pendientes': pedidos_pendientes,
         'pedidos_procesados': pedidos_procesados,
         'pedidos_enviados': pedidos_enviados,
+        'transportistas': Transportista.objects.filter(activo=True).order_by('nombre'),
     }
     
     return render(request, 'ecommerce/index.html', ctx)
@@ -449,3 +455,357 @@ def configurar_plataforma(request):
     }
     
     return render(request, 'ecommerce/configurar.html', ctx)
+
+
+@login_required
+def procesar_pedido(request, pedido_id):
+    """Marca un pedido como procesado y actualiza su envío asociado"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    try:
+        permitido = Perfil.objects.filter(user=request.user, rol__in=['administrador', 'editor']).exists()
+        if not permitido:
+            return JsonResponse({'error': 'Sin permisos'}, status=403)
+        pedido = PedidoEcommerce.objects.get(id=pedido_id)
+        pedido.estado = 'procesado'
+        pedido.save(update_fields=['estado', 'actualizado_en'])
+        if pedido.envio and pedido.envio.estado == 'pendiente':
+            pedido.envio.estado = 'en_transito'
+            pedido.envio.save(update_fields=['estado', 'actualizado_en'])
+            EventoSeguimiento.objects.create(
+                envio=pedido.envio,
+                estado='en_transito',
+                ubicacion='Procesado desde panel e-commerce',
+                observacion=f'Pedido {pedido.numero_orden} procesado'
+            )
+        return JsonResponse({'status': 'ok'})
+    except PedidoEcommerce.DoesNotExist:
+        return JsonResponse({'error': 'Pedido no encontrado'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@login_required
+def asignar_transportista(request, pedido_id):
+    """Asigna un transportista al envío asociado de un pedido e-commerce"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    try:
+        permitido_admin = Perfil.objects.filter(user=request.user, rol__in=['administrador', 'editor']).exists()
+        # Dueño del pedido (plataforma asociada al usuario)
+        permitido_duenio = False
+        try:
+            ped_check = PedidoEcommerce.objects.get(id=pedido_id)
+            permitido_duenio = (ped_check.plataforma.usuario == request.user)
+        except PedidoEcommerce.DoesNotExist:
+            permitido_duenio = False
+        if not (permitido_admin or permitido_duenio):
+            return JsonResponse({'error': 'Sin permisos'}, status=403)
+        pedido = PedidoEcommerce.objects.get(id=pedido_id)
+        if not pedido.envio:
+            return JsonResponse({'error': 'Pedido sin envío asociado'}, status=400)
+        data = json.loads(request.body) if request.content_type == 'application/json' else request.POST
+        tid = int(data.get('transportista_id'))
+        t = Transportista.objects.get(id=tid, activo=True)
+        pedido.envio.transportista = t
+        pedido.envio.save(update_fields=['transportista', 'actualizado_en'])
+        return JsonResponse({'status': 'ok'})
+    except PedidoEcommerce.DoesNotExist:
+        return JsonResponse({'error': 'Pedido no encontrado'}, status=404)
+    except Transportista.DoesNotExist:
+        return JsonResponse({'error': 'Transportista no encontrado'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@login_required
+def nuevo_pedido(request):
+    """Formulario para que el usuario cree un pedido manual y lo visualice luego"""
+    created = False
+    pedido = None
+    if request.method == 'POST':
+        try:
+            data = request.POST
+            # Obtener/crear plataforma personalizada para el usuario
+            plataforma, _ = PlataformaEcommerce.objects.get_or_create(
+                usuario=request.user,
+                nombre='Pedidos Directos',
+                defaults={'tipo':'custom','api_key':'-', 'store_url':'http://localhost', 'esta_activa':True}
+            )
+            numero_orden = (data.get('numero_orden') or f"USR-{request.user.id}-{int(timezone.now().timestamp())}")
+            pedido = PedidoEcommerce.objects.create(
+                plataforma=plataforma,
+                pedido_id_externo=numero_orden,
+                numero_orden=numero_orden,
+                cliente_nombre=data.get('cliente_nombre',''),
+                cliente_email=data.get('cliente_email',''),
+                cliente_telefono=data.get('cliente_telefono',''),
+                direccion_entrega=data.get('direccion_entrega',''),
+                total=float(data.get('total') or 0),
+                moneda=(data.get('moneda') or 'CLP')[:3],
+                estado='pendiente',
+                fecha_pedido=timezone.now(),
+            )
+            # Parseo simple de items: sku,nombre,cantidad,precio por línea
+            items_text = data.get('items_text','').strip()
+            for line in [l for l in items_text.replace('\r','\n').split('\n') if l.strip()]:
+                parts = [p.strip() for p in line.split(',')]
+                if len(parts) >= 4:
+                    ProductoPedido.objects.create(
+                        pedido=pedido,
+                        sku=parts[0], nombre=parts[1], cantidad=int(parts[2]), precio_unitario=float(parts[3])
+                    )
+            envio = _crear_envio_desde_pedido(pedido)
+            pedido.envio = envio
+            pedido.save()
+            created = True
+        except Exception:
+            created = False
+    return render(request, 'ecommerce/nuevo_pedido.html', {'created': created, 'pedido': pedido})
+
+
+@login_required
+def mis_pedidos(request):
+    """Listado de pedidos creados por el usuario (plataformas del usuario)"""
+    queryset = PedidoEcommerce.objects.select_related('plataforma','envio').filter(plataforma__usuario=request.user).order_by('-creado_en')
+    paginator = Paginator(queryset, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'ecommerce/mis_pedidos.html', {
+        'pedidos': page_obj.object_list,
+        'page_obj': page_obj,
+        'transportistas': Transportista.objects.filter(activo=True).order_by('nombre')
+    })
+
+@login_required
+def tienda(request):
+    """Tienda simple para que el usuario cree pedidos en dos empresas: Shopify y Amazon"""
+    def _cargar_catalogo():
+        try:
+            path = os.path.join(settings.BASE_DIR, 'static', 'ecommerce', 'catalogo.json')
+            with open(path, 'r', encoding='utf-8') as f:
+                data = _json.load(f)
+                return data
+        except Exception:
+            return None
+
+    productos = _cargar_catalogo() or {
+        'shopify': [
+            {'sku':'SH-1001','nombre':'Polera Correos', 'precio': 12990, 'img': '/static/img/tienda/polera_correos.svg', 'peso':0.3, 'orden':1},
+            {'sku':'SH-1002','nombre':'Gorro Azul', 'precio': 7990, 'img': '/static/img/tienda/gorro_azul.svg', 'peso':0.2, 'orden':2},
+            {'sku':'SH-1003','nombre':'Polerón Rojo', 'precio': 19990, 'img': '/static/img/tienda/poleron_rojo.svg', 'peso':0.6, 'orden':3},
+        ],
+        'amazon': [
+            {'sku':'AM-2001','nombre':'Caja pequeña', 'precio': 3990, 'img': '/static/img/tienda/caja_pequena.svg', 'peso':0.4, 'orden':1},
+            {'sku':'AM-2002','nombre':'Caja mediana', 'precio': 6990, 'img': '/static/img/tienda/caja_mediana.svg', 'peso':0.8, 'orden':2},
+            {'sku':'AM-2003','nombre':'Caja grande', 'precio': 9990, 'img': '/static/img/tienda/caja_grande.svg', 'peso':1.5, 'orden':3},
+        ]
+    }
+    # Ordenar por 'orden' si existe
+    for k in list(productos.keys()):
+        try:
+            productos[k] = sorted(productos[k], key=lambda x: x.get('orden', 999))
+        except Exception:
+            pass
+    created = False
+    pedido = None
+    error = ''
+    if request.method == 'POST':
+        try:
+            empresa = (request.POST.get('empresa') or 'shopify').strip()
+            if empresa not in ['shopify','amazon']:
+                empresa = 'shopify'
+            nombre = (request.POST.get('cliente_nombre') or '').strip()
+            email = (request.POST.get('cliente_email') or '').strip()
+            telefono = (request.POST.get('cliente_telefono') or '').strip()
+            direccion = (request.POST.get('direccion_entrega') or '').strip()
+            items_text = (request.POST.get('items_text') or '').strip()
+            if not nombre or not email or not direccion:
+                raise ValueError('Faltan datos del cliente')
+            plataforma, _ = PlataformaEcommerce.objects.get_or_create(
+                usuario=request.user,
+                nombre=f'Tienda {empresa.title()}',
+                defaults={'tipo':empresa, 'api_key':'-', 'store_url':'http://localhost', 'esta_activa':True}
+            )
+            numero_orden = f"WEB-{empresa.upper()}-{int(timezone.now().timestamp())}"
+            pedido = PedidoEcommerce.objects.create(
+                plataforma=plataforma,
+                pedido_id_externo=numero_orden,
+                numero_orden=numero_orden,
+                cliente_nombre=nombre,
+                cliente_email=email,
+                cliente_telefono=telefono,
+                direccion_entrega=direccion,
+                total=float(request.POST.get('total') or 0),
+                moneda='CLP',
+                estado='pendiente',
+                fecha_pedido=timezone.now(),
+            )
+            for line in [l for l in items_text.replace('\r','\n').split('\n') if l.strip()]:
+                parts = [p.strip() for p in line.split(',')]
+                if len(parts) >= 4:
+                    ProductoPedido.objects.create(
+                        pedido=pedido,
+                        sku=parts[0], nombre=parts[1], cantidad=int(parts[2]), precio_unitario=float(parts[3])
+                    )
+            envio = _crear_envio_desde_pedido(pedido)
+            pedido.envio = envio
+            pedido.save()
+            created = True
+        except ValueError as e:
+            error = str(e)
+        except Exception:
+            error = 'Error al crear pedido'
+    return render(request, 'ecommerce/tienda.html', {
+        'productos': productos,
+        'created': created,
+        'pedido': pedido,
+        'error': error,
+    })
+
+@login_required
+def reenviar_estado(request, pedido_id):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    try:
+        pedido = PedidoEcommerce.objects.select_related('envio','plataforma').get(id=pedido_id)
+        envio = pedido.envio
+        if not envio:
+            return JsonResponse({'error': 'Pedido sin envío'}, status=400)
+        status_code = sync_estado_a_plataforma(pedido, envio.estado, tracking_codigo=getattr(envio,'codigo',None))
+        return JsonResponse({'status': 'ok', 'status_code': status_code})
+    except PedidoEcommerce.DoesNotExist:
+        return JsonResponse({'error': 'Pedido no encontrado'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+@csrf_exempt
+def sandbox_status(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+        except Exception:
+            data = {'raw': request.body.decode('utf-8','ignore')}
+        WebhookLog.objects.create(
+            plataforma=PlataformaEcommerce.objects.filter(esta_activa=True).first(),
+            evento_tipo='sandbox_status',
+            nivel='info',
+            mensaje='Sandbox status recibido',
+            datos_recibidos=data,
+            ip_origen=request.META.get('REMOTE_ADDR'),
+            user_agent=request.META.get('HTTP_USER_AGENT'),
+            procesado_exitoso=True
+        )
+        return JsonResponse({'status':'ok'})
+    # GET: mostrar últimos
+    logs = WebhookLog.objects.filter(evento_tipo='sandbox_status').order_by('-creado_en')[:20]
+    return render(request, 'ecommerce/sandbox_status.html', {'logs': logs})
+
+@login_required
+def probar_sync(request, pedido_id):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    try:
+        pedido = PedidoEcommerce.objects.select_related('envio').get(id=pedido_id)
+        envio = pedido.envio
+        if not envio:
+            return JsonResponse({'error': 'Pedido sin envío'}, status=400)
+        override = request.build_absolute_uri('/ecommerce/sandbox/status')
+        status_code = sync_estado_a_plataforma(pedido, envio.estado, tracking_codigo=getattr(envio,'codigo',None), override_url=override)
+        return JsonResponse({'status':'ok','status_code':status_code})
+    except PedidoEcommerce.DoesNotExist:
+        return JsonResponse({'error': 'Pedido no encontrado'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+@csrf_exempt
+@require_POST
+def amazon_webhook(request, plataforma_id):
+    """
+    Webhook simplificado para recibir eventos de pedidos de Amazon
+    Espera un JSON con claves principales: orderId, orderNumber, buyer, shippingAddress, items, currency, purchaseDate
+    """
+    try:
+        plataforma = PlataformaEcommerce.objects.get(id=plataforma_id, tipo='amazon', esta_activa=True)
+        data = json.loads(request.body)
+        # Log básico del webhook
+        WebhookLog.objects.create(
+            plataforma=plataforma,
+            evento_tipo=data.get('event','orders/create'),
+            evento_id=str(data.get('orderId')),
+            nivel='info',
+            mensaje='Webhook Amazon recibido',
+            datos_recibidos=data,
+            ip_origen=request.META.get('REMOTE_ADDR'),
+            user_agent=request.META.get('HTTP_USER_AGENT'),
+            procesado_exitoso=True
+        )
+        # Procesar pedido
+        procesar_pedido_amazon(plataforma, data)
+        return JsonResponse({'status': 'ok'})
+    except PlataformaEcommerce.DoesNotExist:
+        return JsonResponse({'error': 'Plataforma Amazon no encontrada'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'JSON inválido'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': f'Error interno: {str(e)}'}, status=500)
+
+
+def procesar_pedido_amazon(plataforma, data):
+    """Crea/actualiza un pedido proveniente de Amazon y su envío asociado"""
+    # Id y número
+    order_id = str(data.get('orderId') or data.get('id') or '')
+    numero_orden = data.get('orderNumber') or order_id or f"AMZ-{int(timezone.now().timestamp())}"
+    if not order_id:
+        order_id = numero_orden
+    pedido = PedidoEcommerce.objects.filter(plataforma=plataforma, pedido_id_externo=order_id).first()
+    if pedido:
+        # Actualización simple de estado
+        estado_ext = (data.get('status') or '').lower()
+        if estado_ext in ['shipped','enviado']:
+            pedido.estado = 'enviado'
+            pedido.fecha_envio = timezone.now()
+        elif estado_ext in ['cancelled','cancelado']:
+            pedido.estado = 'cancelado'
+        pedido.save()
+        return pedido
+    # Crear pedido nuevo
+    buyer = data.get('buyer', {})
+    shipping = data.get('shippingAddress', {})
+    total = float(data.get('total', 0))
+    currency = (data.get('currency') or 'CLP')[:3]
+    fecha_pedido = data.get('purchaseDate') or timezone.now().isoformat()
+    pedido = PedidoEcommerce.objects.create(
+        plataforma=plataforma,
+        pedido_id_externo=order_id,
+        numero_orden=numero_orden,
+        cliente_nombre=f"{buyer.get('name') or buyer.get('firstName','')} {buyer.get('lastName','')}".strip() or (buyer.get('name') or 'Amazon Cliente'),
+        cliente_email=buyer.get('email','no-reply@example.com'),
+        cliente_telefono=buyer.get('phone',''),
+        direccion_entrega=_formatear_direccion_amazon(shipping),
+        direccion_envio=_formatear_direccion_amazon(data.get('billingAddress', {})),
+        total=total,
+        moneda=currency,
+        estado='pendiente',
+        fecha_pedido=datetime.fromisoformat(str(fecha_pedido).replace('Z','+00:00')) if isinstance(fecha_pedido, str) else timezone.now(),
+        datos_raw=data
+    )
+    # Productos
+    for item in (data.get('items') or []):
+        ProductoPedido.objects.create(
+            pedido=pedido,
+            sku=str(item.get('sku') or item.get('asin') or ''),
+            nombre=item.get('name','Item Amazon'),
+            cantidad=int(item.get('quantity') or 1),
+            precio_unitario=float(item.get('price') or 0),
+            peso_kg=float(item.get('weightKg') or 0) if item.get('weightKg') is not None else None,
+            dimensiones=item.get('dimensions','')
+        )
+    envio = _crear_envio_desde_pedido(pedido)
+    pedido.envio = envio
+    pedido.save()
+    return pedido
+
+
+def _formatear_direccion_amazon(addr):
+    partes = [addr.get('address1',''), addr.get('address2',''), addr.get('city',''), addr.get('state',''), addr.get('postalCode',''), addr.get('country','')]
+    return ', '.join([p for p in partes if p])

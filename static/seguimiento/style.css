@@ -1,7 +1,7 @@
 table.table td, table.table th{vertical-align:middle}
 .seguimiento-bg{background:none}
 html, body{height:100%}
-body{background:linear-gradient(135deg,#4b6cb7 0%, #182848 100%)}
+body{background:linear-gradient(135deg,#4b6cb7 0%, #182848 100%}
 .seguimiento-bg .card{background:#fff;box-shadow:0 0.5rem 1rem rgba(0,0,0,.06);border:1px solid #eee}
 .toolbar .input-group{width:360px}
 .toolbar .form-control{border-color:#dee2e6}
@@ -17,3 +17,11 @@ body{background:linear-gradient(135deg,#4b6cb7 0%, #182848 100%)}
 .pagination .page-link{color:#0b6fdc}
 .pagination .page-item.active .page-link{background-color:#0b6fdc;border-color:#0b6fdc;color:#fff}
 .pagination .page-link:hover{color:#084e9b}
+.map-seguimiento{height:420px}
+@media (max-width:768px){.map-seguimiento{height:280px}}
+.leaflet-container{width:100% !important;height:100% !important}
+.leaflet-pane, .leaflet-tile, .leaflet-marker-icon{image-rendering:auto}
+/* Evitar que Bootstrap afecte los tiles de Leaflet */
+.leaflet-container img { max-width: none !important; }
+.leaflet-container .leaflet-marker-icon, .leaflet-container .leaflet-marker-shadow { max-width: none !important; }
+.leaflet-container .leaflet-tile { width:256px !important; height:256px !important; transform-origin: 0 0 !important; }

@@ -1,0 +1,12 @@
+{
+  "shopify": [
+    {"sku": "SH-1001", "nombre": "Polera Correos", "precio": 12990, "img": "/static/img/tienda/polera_correos.svg", "peso": 0.3, "orden": 1},
+    {"sku": "SH-1002", "nombre": "Gorro Azul", "precio": 7990, "img": "/static/img/tienda/gorro_azul.svg", "peso": 0.2, "orden": 2},
+    {"sku": "SH-1003", "nombre": "Polerón Rojo", "precio": 19990, "img": "/static/img/tienda/poleron_rojo.svg", "peso": 0.6, "orden": 3}
+  ],
+  "amazon": [
+    {"sku": "AM-2001", "nombre": "Caja pequeña", "precio": 3990, "img": "/static/img/tienda/caja_pequena.svg", "peso": 0.4, "orden": 1},
+    {"sku": "AM-2002", "nombre": "Caja mediana", "precio": 6990, "img": "/static/img/tienda/caja_mediana.svg", "peso": 0.8, "orden": 2},
+    {"sku": "AM-2003", "nombre": "Caja grande", "precio": 9990, "img": "/static/img/tienda/caja_grande.svg", "peso": 1.5, "orden": 3}
+  ]
+}

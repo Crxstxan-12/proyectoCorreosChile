@@ -28,3 +28,21 @@ table.table td, table.table th{vertical-align:middle}
 @media (max-width: 576px){
   .toolbar .input-group{width:100%; margin-bottom:.5rem}
 }
+.transportista-bg{background:linear-gradient(135deg,#f8fbff 0%,#eef4ff 100%)}
+.transportista-bg .card{background:#fff;box-shadow:0 0.75rem 1.5rem rgba(18,38,63,.08);border:1px solid #e6e6e6;border-radius:12px}
+.transportista-bg .card-header{color:#27374D}
+.transportista-bg .card-body{color:#334155}
+.metrics .card{border:none;border-radius:16px;box-shadow:0 0.75rem 1.5rem rgba(18,38,63,.08)}
+.metrics .card .h6{font-weight:600;color:#6b7280}
+.metrics .card .h3{font-weight:700;color:#111827}
+.toolbar .input-group{width:360px;max-width:100%}
+.toolbar .form-control{border-color:#dee2e6;border-radius:10px;color:#334155}
+.toolbar .input-group-text{background-color:#fff;color:#475569;border-radius:10px 0 0 10px}
+.toolbar .btn{border-radius:10px}
+.estado-activo{background-color:#eaf7ee;color:#2e7d32}
+.estado-inactivo{background-color:#eef0f3;color:#6b7280}
+.badge.estado-activo,.badge.estado-inactivo{padding:.4rem .6rem;border-radius:9999px;font-weight:600}
+.table.table td, .table.table th{vertical-align:middle}
+.table thead th{color:#1f2937}
+.table tbody td{color:#334155}
+.table.table tbody tr:hover{background:#f8f9fa}
